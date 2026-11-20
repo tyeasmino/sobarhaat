@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none" role="img" aria-label="Community tree plantation">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse"><stop stop-color="#1D5A3E"/><stop offset="1" stop-color="#8FCB8A"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <circle cx="650" cy="120" r="70" fill="#FFE2B4" opacity=".45"/>
+  <path d="M0 480c180-45 320 20 500-10s200-10 300 20v110H0V480Z" fill="#144A34"/>
+  <g><circle cx="250" cy="230" r="38" fill="#FFE0C4"/><path d="M192 470c0-85 26-140 58-140s58 55 58 140" fill="#FFF3DE"/><path d="M300 340l60 50" stroke="#FFE0C4" stroke-width="22" stroke-linecap="round"/></g>
+  <path d="M450 460V300" stroke="#E8D9B0" stroke-width="16" stroke-linecap="round"/>
+  <path d="M450 330c-60-8-96-44-104-96 54 2 90 34 104 96ZM450 360c60-8 96-44 104-96-54 2-90 34-104 96Z" fill="#B8F2C2"/>
+</svg>

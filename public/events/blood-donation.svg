@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none" role="img" aria-label="Blood donation camp">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#7E2430"/><stop offset="1" stop-color="#E0605A"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <circle cx="400" cy="240" r="160" fill="#FFE0D2" opacity=".18"/>
+  <path d="M400 110c70 88 110 138 110 190a110 110 0 1 1-220 0c0-52 40-102 110-190Z" fill="#FF6F5E"/>
+  <path d="M360 290c6 34 24 52 56 56" stroke="#FFD7CB" stroke-width="14" stroke-linecap="round"/>
+  <path d="M250 390h300" stroke="#FFE0D2" stroke-width="12" stroke-linecap="round" opacity=".7"/>
+  <g fill="#FFE0D2" opacity=".75"><circle cx="170" cy="140" r="9"/><circle cx="640" cy="180" r="7"/><circle cx="600" cy="380" r="10"/></g>
+</svg>

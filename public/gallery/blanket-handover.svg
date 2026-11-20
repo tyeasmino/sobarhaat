@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none" role="img" aria-label="Volunteer handing a blanket to a family">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse"><stop stop-color="#0E5A6B"/><stop offset="1" stop-color="#F2B183"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <circle cx="620" cy="140" r="80" fill="#FFE2B4" opacity=".5"/>
+  <path d="M0 470c160-50 280 20 420-10s250-30 380 20v120H0V470Z" fill="#0A4B48" opacity=".75"/>
+  <g><circle cx="250" cy="250" r="42" fill="#FFE0C4"/><path d="M190 470c0-90 26-150 60-150s60 60 60 150" fill="#FFF3DE"/><path d="M292 330l80 50" stroke="#FFE0C4" stroke-width="24" stroke-linecap="round"/></g>
+  <g><circle cx="520" cy="240" r="40" fill="#E8B894"/><path d="M462 470c0-90 26-150 58-150s58 60 58 150" fill="#0E7C86"/><path d="M480 330l-70 55" stroke="#E8B894" stroke-width="24" stroke-linecap="round"/></g>
+  <rect x="330" y="330" width="150" height="70" rx="20" fill="#FFCFA8"/>
+  <path d="M360 355h90M360 375h70" stroke="#B65E42" stroke-width="7" stroke-linecap="round" opacity=".6"/>
+</svg>

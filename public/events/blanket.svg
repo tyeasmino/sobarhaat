@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none" role="img" aria-label="Folded blankets ready for distribution">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#7A3B2E"/><stop offset="1" stop-color="#E88A5C"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <circle cx="650" cy="110" r="70" fill="#FFD9A8" opacity=".35"/>
+  <rect x="140" y="310" width="520" height="95" rx="26" fill="#FFF3DE"/>
+  <rect x="170" y="250" width="460" height="85" rx="26" fill="#FFCFA8"/>
+  <rect x="200" y="190" width="400" height="85" rx="26" fill="#FFF9EC"/>
+  <path d="M250 232h300M230 292h340M260 355h280" stroke="#B65E42" stroke-width="9" stroke-linecap="round" opacity=".55"/>
+  <path d="M340 190c0-30 26-55 60-55s60 25 60 55" stroke="#FFF3DE" stroke-width="14" stroke-linecap="round"/>
+</svg>

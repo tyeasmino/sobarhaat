@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none" role="img" aria-label="Tree plantation drive">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#1D5A3E"/><stop offset="1" stop-color="#6FB27A"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <circle cx="650" cy="110" r="64" fill="#FFE2A8" opacity=".35"/>
+  <path d="M400 400V230" stroke="#E8D9B0" stroke-width="20" stroke-linecap="round"/>
+  <path d="M400 260c-70-10-110-50-120-110 62 2 104 38 120 110ZM400 300c70-10 110-50 120-110-62 2-104 38-120 110Z" fill="#B8F2C2"/>
+  <path d="M400 220c-40-30-50-70-30-110 34 26 44 66 30 110ZM400 220c40-30 50-70 30-110-34 26-44 66-30 110Z" fill="#8EDBA0"/>
+  <path d="M220 410h360" stroke="#D9EFC7" stroke-width="14" stroke-linecap="round" opacity=".7"/>
+  <g fill="#D9EFC7" opacity=".6"><circle cx="160" cy="150" r="8"/><circle cx="700" cy="320" r="9"/><circle cx="250" cy="100" r="6"/></g>
+</svg>

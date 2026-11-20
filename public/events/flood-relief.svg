@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none" role="img" aria-label="Flood relief boat carrying supplies">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#124A63"/><stop offset="1" stop-color="#3C8BA6"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <path d="M0 330c120-28 200 28 320 0s200 28 320 0 160 18 160 18v152H0V330Z" fill="#2A6F8A"/>
+  <path d="M0 380c120-28 200 28 320 0s200 28 320 0 160 18 160 18v102H0V380Z" fill="#185B73"/>
+  <path d="M230 300h340l-50 80H280l-50-80Z" fill="#FFF3DE"/>
+  <rect x="360" y="225" width="90" height="80" rx="10" fill="#FF8A6B"/>
+  <path d="M405 225v80M360 265h90" stroke="#FFF3DE" stroke-width="8"/>
+  <path d="M330 220h50l-14-45h-22l-14 45Z" fill="#B8F2E6"/>
+  <g stroke="#CFEFEF" stroke-width="6" stroke-linecap="round" opacity=".5"><path d="M90 430h80M620 450h100M180 470h70"/></g>
+</svg>

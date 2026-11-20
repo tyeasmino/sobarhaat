@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sobar Haat
 
-## Getting Started
+**Community service, closer to home.** Sobar Haat is a community-driven social development events platform where people can create, join and track local service drives — winter clothes distribution, blanket donations, food support, flood relief, blood donation camps and more.
 
-First, run the development server:
+**Live site:** https://sobar-haat.vercel.app _(replace with the deployed Vercel URL after release)_
+
+## Features
+
+- **Discover local drives** — browse upcoming community events with thumbnails, type, location, date and details.
+- **Recent events on the home page** — the six newest upcoming events are loaded from MongoDB with `.limit(6)` and sorted by date.
+- **Create & manage events** — logged-in users can create events with validation, then edit or delete only their own events.
+- **Join events** — authenticated users can join a drive; joined events are stored against both the user and the event and shown sorted by date.
+- **Email/password + social login** — registration and login with validated passwords, plus a Google sign-in option.
+- **Protected routes** — create, manage and joined-events pages require a valid JWT; refreshing a private route keeps the user signed in.
+- **Light/dark theme toggle** — a single switch restyles the whole interface using semantic CSS tokens.
+- **Responsive design** — consistent cards, spacing and heading styles across mobile, tablet and desktop.
+- **Friendly feedback** — toasts for auth and event actions instead of browser default alerts.
+
+## Tech stack
+
+- Next.js (App Router), React, TypeScript
+- Tailwind CSS v4 with shadcn UI primitives
+- Express.js REST API with MongoDB
+- BetterAuth with MongoDB adapter and JWT validation
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build (also type-checks) |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Environment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create a `.env.local` file with the API base URL and authentication secrets once the server is connected. All `.env*` files are gitignored.

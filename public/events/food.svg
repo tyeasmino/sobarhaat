@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none" role="img" aria-label="Hot meal ready for a food drive">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#6B5324"/><stop offset="1" stop-color="#D8A94F"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <g stroke="#FFE9B8" stroke-width="8" stroke-linecap="round" opacity=".6"><path d="M340 150c-18-22 18-34 0-60M420 150c-18-22 18-34 0-60M500 150c-18-22 18-34 0-60"/></g>
+  <path d="M180 260h440c0 110-98 180-220 180S180 370 180 260Z" fill="#FFF9EC"/>
+  <ellipse cx="400" cy="260" rx="220" ry="42" fill="#F2C879"/>
+  <ellipse cx="400" cy="255" rx="180" ry="28" fill="#FFE2A8"/>
+  <rect x="330" y="430" width="140" height="18" rx="9" fill="#FFF9EC" opacity=".8"/>
+  <g fill="#FFF3D4"><circle cx="340" cy="250" r="8"/><circle cx="390" cy="244" r="7"/><circle cx="450" cy="252" r="9"/><circle cx="420" cy="266" r="6"/></g>
+</svg>

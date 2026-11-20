@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none" role="img" aria-label="Voluntary blood donation camp">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="800" y2="600" gradientUnits="userSpaceOnUse"><stop stop-color="#7E2430"/><stop offset="1" stop-color="#EC8A72"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <path d="M0 470h800v130H0V470Z" fill="#5A1B26" opacity=".6"/>
+  <g><circle cx="250" cy="220" r="38" fill="#FFE0C4"/><path d="M192 460c0-85 26-140 58-140s58 55 58 140" fill="#FFF3DE"/><path d="M300 330l55 40" stroke="#FFE0C4" stroke-width="22" stroke-linecap="round"/></g>
+  <rect x="360" y="290" width="150" height="120" rx="20" fill="#FFF3DE"/>
+  <path d="M435 290v-60" stroke="#FF6F5E" stroke-width="12" stroke-linecap="round"/>
+  <path d="M435 205c30 38 48 60 48 82a48 48 0 1 1-96 0c0-22 18-44 48-82Z" fill="#FF6F5E"/>
+  <g><circle cx="600" cy="220" r="36" fill="#E8B894"/><path d="M544 460c0-85 26-140 56-140s56 55 56 140" fill="#0E7C86"/></g>
+</svg>
