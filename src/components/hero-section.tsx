@@ -30,24 +30,6 @@ const impact = [
   { icon: Shield01Icon, value: "100%", label: "verified events" },
 ];
 
-const steps = [
-  {
-    number: "01",
-    title: "Find a drive",
-    text: "Browse local events that need helping hands.",
-  },
-  {
-    number: "02",
-    title: "Join the team",
-    text: "Sign up in one tap and get the details.",
-  },
-  {
-    number: "03",
-    title: "Make an impact",
-    text: "Show up, help out and see your footprint grow.",
-  },
-];
-
 export function HeroSection() {
   return (
     <section id="top" className="relative isolate overflow-hidden pt-14 pb-20 sm:pt-20 lg:pt-24 lg:pb-28">
@@ -249,21 +231,6 @@ export function HeroSection() {
         ))}
       </div>
 
-      <div
-        id="how-it-works"
-        className="mx-auto mt-8 grid w-full max-w-7xl gap-3 px-4 sm:grid-cols-3 sm:px-6 lg:px-8"
-      >
-        {steps.map((step) => (
-          <div
-            key={step.number}
-            className="rounded-xl border border-border/60 bg-background/50 p-4 backdrop-blur-sm"
-          >
-            <span className="font-heading text-xs font-semibold text-coral">{step.number}</span>
-            <h3 className="mt-1 font-heading text-sm font-semibold text-foreground">{step.title}</h3>
-            <p className="mt-1 text-[0.7rem] leading-5 text-muted-foreground">{step.text}</p>
-          </div>
-        ))}
-      </div>
     </section>
   );
 }
