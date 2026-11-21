@@ -1,9 +1,5 @@
 "use client";
 
-import * as React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight02Icon,
   CheckmarkCircle01Icon,
@@ -13,6 +9,10 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 import { useAuth } from "@/components/auth-provider";
 import { Brand } from "@/components/brand";
@@ -20,6 +20,7 @@ import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 type AuthMode = "login" | "register";
 
@@ -103,183 +104,205 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     });
   }
 
+  const handleEmailRegister = async (e: React.SubmitEvent<HTMLElement>) => {
+    e.preventDefault()
+
+    const formData = new FormData(e.target)
+    const user = Object.fromEntries(formData.entries()) as { name: string, email: string, image: string, password: string }
+
+    const { data, error } = await authClient.signUp.email({
+      ...user
+    })
+
+    if (data) {
+      console.log(data);
+    }
+
+    if (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <section className="py-8 sm:py-12 lg:py-14">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 overflow-hidden rounded-3xl border border-border/70 bg-card/40 lg:grid-cols-2">
-          <div className="relative hidden min-h-[600px] overflow-hidden bg-muted lg:block">
-        <Image
-          src="/sobar-haat-hero.svg"
-          alt="Neighbours joining hands for a community drive"
-          fill
-          priority
-          sizes="50vw"
-          className="object-cover"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(to_top,var(--hero-shade),transparent_75%)]"
-        />
-        <div className="relative flex h-full flex-col justify-between p-10">
-          <Brand />
-          <div className="max-w-md">
-            <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.5} className="size-8 text-mint" />
-            <p className="mt-4 font-heading text-2xl leading-snug font-semibold text-white">
-              Every drive starts with one person who decides to show up.
-            </p>
-            <p className="mt-3 text-sm text-white/80">Be that person in your neighbourhood.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-center p-6 sm:p-10">
-        <Card className="w-full max-w-md rounded-2xl border-border/70 bg-card/80 p-6 shadow-xl backdrop-blur-sm sm:p-8">
-          <div className="lg:hidden">
-            <Brand />
-          </div>
-          <p className="mt-6 text-[0.65rem] font-semibold tracking-[0.18em] text-primary uppercase">
-            {content.eyebrow}
-          </p>
-          <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
-            {content.title}
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{content.text}</p>
-
-          <form onSubmit={handleSubmit} className="mt-6 grid gap-4" noValidate>
-            {mode === "register" ? (
-              <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-foreground">Full name</span>
-                <span className="relative block">
-                  <HugeiconsIcon
-                    icon={UserIcon}
-                    strokeWidth={1.6}
-                    className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                  />
-                  <Input
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="Your name"
-                    autoComplete="name"
-                    required
-                    className="h-10 bg-background/60 pl-9 text-sm"
-                  />
-                </span>
-              </label>
-            ) : null}
-
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-foreground">Email address</span>
-              <span className="relative block">
-                <HugeiconsIcon
-                  icon={Mail01Icon}
-                  strokeWidth={1.6}
-                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  required
-                  className="h-10 bg-background/60 pl-9 text-sm"
-                />
-              </span>
-            </label>
-
-            {mode === "register" ? (
-              <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-foreground">
-                  Photo URL <span className="font-normal text-muted-foreground">(optional)</span>
-                </span>
-                <Input
-                  type="url"
-                  value={photoURL}
-                  onChange={(event) => setPhotoURL(event.target.value)}
-                  placeholder="https://..."
-                  className="h-10 bg-background/60 text-sm"
-                />
-              </label>
-            ) : null}
-
-            <div className="grid gap-1.5">
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor="auth-password" className="text-xs font-medium text-foreground">
-                  Password
-                </label>
-                {mode === "login" ? (
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs font-semibold text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                ) : null}
+          <div className="relative hidden min-h-150 overflow-hidden bg-muted lg:block">
+            <Image
+              src="/sobar-haat-hero.svg"
+              alt="Neighbours joining hands for a community drive"
+              fill
+              priority
+              sizes="50vw"
+              className="object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(to_top,var(--hero-shade),transparent_75%)]"
+            />
+            <div className="relative flex h-full flex-col justify-between p-10">
+              <Brand />
+              <div className="max-w-md">
+                <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.5} className="size-8 text-mint" />
+                <p className="mt-4 font-heading text-2xl leading-snug font-semibold text-white">
+                  Every drive starts with one person who decides to show up.
+                </p>
+                <p className="mt-3 text-sm text-white/80">Be that person in your neighbourhood.</p>
               </div>
-              <Input
-                id="auth-password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="At least 6 characters"
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                required
-                className="h-10 bg-background/60 text-sm"
-              />
             </div>
-
-            <ul className="flex flex-wrap gap-x-4 gap-y-1">
-              {[
-                { label: "Uppercase letter", ok: checks.uppercase },
-                { label: "Lowercase letter", ok: checks.lowercase },
-                { label: "6+ characters", ok: checks.length },
-              ].map((rule) => (
-                <li
-                  key={rule.label}
-                  className={`flex items-center gap-1 text-[0.65rem] ${
-                    rule.ok ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-3" />
-                  {rule.label}
-                </li>
-              ))}
-            </ul>
-
-            {submitted && !passwordValid ? (
-              <p className="text-xs text-destructive">
-                Password needs an uppercase letter, a lowercase letter and at least 6 characters.
-              </p>
-            ) : null}
-
-            <Button type="submit" className="h-11 w-full gap-2 rounded-full text-sm">
-              {content.action}
-              <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-4" />
-            </Button>
-          </form>
-
-          <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-border" />
-            <span className="text-[0.65rem] text-muted-foreground uppercase">or</span>
-            <span className="h-px flex-1 bg-border" />
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogle}
-            className="h-11 w-full gap-2 rounded-full bg-background/50 text-sm"
-          >
-            <HugeiconsIcon icon={GoogleIcon} strokeWidth={1.6} className="size-4" />
-            Continue with Google
-          </Button>
+          <div className="flex items-center justify-center p-6 sm:p-10">
+            <Card className="w-full max-w-md rounded-2xl border-border/70 bg-card/80 p-6 shadow-xl backdrop-blur-sm sm:p-8">
+              <div className="lg:hidden">
+                <Brand />
+              </div>
+              <p className="mt-6 text-[0.65rem] font-semibold tracking-[0.18em] text-primary uppercase">
+                {content.eyebrow}
+              </p>
+              <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
+                {content.title}
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{content.text}</p>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            {content.switchText}{" "}
-            <Link href={content.switchHref} className="font-semibold text-primary hover:underline">
-              {content.switchLabel}
-            </Link>
-          </p>
+              <form onSubmit={handleEmailRegister} className="mt-6 grid gap-4" noValidate>
+                {mode === "register" ? (
+                  <label className="grid gap-1.5">
+                    <span className="text-xs font-medium text-foreground">Full name</span>
+                    <span className="relative block">
+                      <HugeiconsIcon
+                        icon={UserIcon}
+                        strokeWidth={1.6}
+                        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                      />
+                      <Input
+                        name="name"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder="Your name"
+                        autoComplete="name"
+                        required
+                        className="h-10 bg-background/60 pl-9 text-sm"
+                      />
+                    </span>
+                  </label>
+                ) : null}
+
+                <label className="grid gap-1.5">
+                  <span className="text-xs font-medium text-foreground">Email address</span>
+                  <span className="relative block">
+                    <HugeiconsIcon
+                      icon={Mail01Icon}
+                      strokeWidth={1.6}
+                      className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <Input
+                      name="email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      required
+                      className="h-10 bg-background/60 pl-9 text-sm"
+                    />
+                  </span>
+                </label>
+
+                {mode === "register" ? (
+                  <label className="grid gap-1.5">
+                    <span className="text-xs font-medium text-foreground">
+                      Photo URL <span className="font-normal text-muted-foreground">(optional)</span>
+                    </span>
+                    <Input
+                      name="photoURL"
+                      type="url"
+                      value={photoURL}
+                      onChange={(event) => setPhotoURL(event.target.value)}
+                      placeholder="https://..."
+                      className="h-10 bg-background/60 text-sm"
+                    />
+                  </label>
+                ) : null}
+
+                <div className="grid gap-1.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <label htmlFor="auth-password" className="text-xs font-medium text-foreground">
+                      Password
+                    </label>
+                    {mode === "login" ? (
+                      <Link
+                        href="/forgot-password"
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    ) : null}
+                  </div>
+                  <Input
+                    id="auth-password"
+                    name="password"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="At least 6 characters"
+                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                    required
+                    className="h-10 bg-background/60 text-sm"
+                  />
+                </div>
+
+                <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                  {[
+                    { label: "Uppercase letter", ok: checks.uppercase },
+                    { label: "Lowercase letter", ok: checks.lowercase },
+                    { label: "6+ characters", ok: checks.length },
+                  ].map((rule) => (
+                    <li
+                      key={rule.label}
+                      className={`flex items-center gap-1 text-[0.65rem] ${rule.ok ? "text-primary" : "text-muted-foreground"
+                        }`}
+                    >
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-3" />
+                      {rule.label}
+                    </li>
+                  ))}
+                </ul>
+
+                {submitted && !passwordValid ? (
+                  <p className="text-xs text-destructive">
+                    Password needs an uppercase letter, a lowercase letter and at least 6 characters.
+                  </p>
+                ) : null}
+
+                <Button type="submit" className="h-11 w-full gap-2 rounded-full text-sm">
+                  {content.action}
+                  <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-4" />
+                </Button>
+              </form>
+
+              <div className="my-5 flex items-center gap-3">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-[0.65rem] text-muted-foreground uppercase">or</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogle}
+                className="h-11 w-full gap-2 rounded-full bg-background/50 text-sm"
+              >
+                <HugeiconsIcon icon={GoogleIcon} strokeWidth={1.6} className="size-4" />
+                Continue with Google
+              </Button>
+
+              <p className="mt-6 text-center text-xs text-muted-foreground">
+                {content.switchText}{" "}
+                <Link href={content.switchHref} className="font-semibold text-primary hover:underline">
+                  {content.switchLabel}
+                </Link>
+              </p>
             </Card>
           </div>
         </div>
