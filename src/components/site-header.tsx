@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Add01Icon,
   ArrowRight02Icon,
@@ -13,6 +11,8 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth-provider";
 import { Brand } from "@/components/brand";
@@ -44,10 +44,10 @@ import {
 } from "@/components/ui/tooltip";
 
 const navItems = [
-  { label: "Upcoming Events", href: "#events" },
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Our impact", href: "#impact" },
-  { label: "About", href: "#about" },
+  { label: "Upcoming Events", href: "/events" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Our impact", href: "/impact" },
+  { label: "About", href: "/about" },
 ];
 
 const privateLinks = [

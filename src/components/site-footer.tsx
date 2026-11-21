@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Facebook01Icon,
   GroupIcon,
@@ -8,6 +7,7 @@ import {
   XIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 
 import { Brand } from "@/components/brand";
 
@@ -15,9 +15,10 @@ const columns = [
   {
     title: "Explore",
     links: [
-      { label: "Upcoming events", href: "#events" },
-      { label: "How it works", href: "#how-it-works" },
-      { label: "Our impact", href: "#impact" },
+      { label: "About Sobar Haat", href: "/about" },
+      { label: "Upcoming events", href: "/events" },
+      { label: "How it works", href: "/#how-it-works" },
+      { label: "Our impact", href: "/impact" },
     ],
   },
   {
