@@ -202,9 +202,22 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               </label>
             ) : null}
 
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-foreground">Password</span>
+            <div className="grid gap-1.5">
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor="auth-password" className="text-xs font-medium text-foreground">
+                  Password
+                </label>
+                {mode === "login" ? (
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                ) : null}
+              </div>
               <Input
+                id="auth-password"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -213,7 +226,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                 required
                 className="h-10 bg-background/60 text-sm"
               />
-            </label>
+            </div>
 
             <ul className="flex flex-wrap gap-x-4 gap-y-1">
               {[
