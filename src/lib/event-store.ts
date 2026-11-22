@@ -7,6 +7,12 @@ import { sampleEvents, type EventItem } from "@/lib/events";
 const EVENTS_KEY = "sobar-haat-events";
 const JOINS_KEY = "sobar-haat-joins";
 const CHANGE_EVENT = "sobar-haat-events-changed";
+const CLEANUP_KEY = "sobar-haat-dummy-cleanup-done";
+const DUMMY_TITLES = new Set([
+  "Community Cleanup at Mirpur Park",
+  "testing health event",
+  "Direct API Test Event",
+]);
 
 export type JoinRecord = {
   eventId: string;
@@ -14,10 +20,39 @@ export type JoinRecord = {
   joinedAt: string;
 };
 
+type ApiEvent = Partial<EventItem> & { _id?: string };
+
+function normalizeApiEvent(raw: ApiEvent, index: number): EventItem {
+  return {
+    id: raw._id ?? raw.id ?? `event-${index}`,
+    title: raw.title ?? "Untitled event",
+    type: raw.type ?? "Donation",
+    location: raw.location ?? "",
+    date: raw.date ?? "",
+    time: raw.time ?? "10:00",
+    thumbnail: raw.thumbnail ?? "/events/winter-clothes.svg",
+    description: raw.description ?? "",
+    volunteers: typeof raw.volunteers === "number" ? raw.volunteers : 0,
+    creatorEmail: raw.creatorEmail,
+    creatorName: raw.creatorName,
+    createdAt: raw.createdAt,
+  };
+}
+
 function readEvents(): EventItem[] {
   try {
     const raw = window.localStorage.getItem(EVENTS_KEY);
-    return raw ? (JSON.parse(raw) as EventItem[]) : sampleEvents;
+    const events = raw ? (JSON.parse(raw) as EventItem[]) : sampleEvents;
+
+    // One-time cleanup of the old dummy/test events left in the browser cache.
+    if (!window.localStorage.getItem(CLEANUP_KEY)) {
+      const cleaned = events.filter((event) => !DUMMY_TITLES.has(event.title));
+      window.localStorage.setItem(EVENTS_KEY, JSON.stringify(cleaned));
+      window.localStorage.setItem(CLEANUP_KEY, "1");
+      return cleaned;
+    }
+
+    return events;
   } catch {
     return sampleEvents;
   }
@@ -79,6 +114,47 @@ export function useJoins() {
   return React.useMemo(() => JSON.parse(raw) as JoinRecord[], [raw]);
 }
 
+/** Overwrite the local cache with the backend list (Mongo is the source of truth). */
+export function replaceEvents(events: EventItem[]) {
+  window.localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+  notify();
+}
+
+/**
+ * Sync MongoDB events into the local cache once, then expose the normal
+ * useEvents() store so cards, filters, details and joins keep working unchanged.
+ */
+export function useApiEvents() {
+  const events = useEvents();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!apiUrl || loaded) return;
+    let active = true;
+
+    async function load() {
+      try {
+        const response = await fetch(`${apiUrl}/events`);
+        if (!response.ok) return;
+        const data = (await response.json()) as ApiEvent[];
+        if (active && Array.isArray(data)) replaceEvents(data.map(normalizeApiEvent));
+      } catch {
+        // Offline: keep whatever is already cached.
+      } finally {
+        if (active) setLoaded(true);
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [apiUrl, loaded]);
+
+  return events;
+}
+
 function subscribeClock() {
   return () => {};
 }
@@ -96,6 +172,22 @@ export function useToday() {
     subscribeClock,
     getTodaySnapshot,
     getServerTodaySnapshot
+  );
+}
+
+function getNowSnapshot() {
+  return Date.now();
+}
+
+function getServerNowSnapshot() {
+  return 0;
+}
+
+export function useNow() {
+  return React.useSyncExternalStore(
+    subscribeClock,
+    getNowSnapshot,
+    getServerNowSnapshot
   );
 }
 

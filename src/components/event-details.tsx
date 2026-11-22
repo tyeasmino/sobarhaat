@@ -21,10 +21,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatEventDate, formatEventTime } from "@/lib/events";
-import { joinEvent, useEvents, useJoins } from "@/lib/event-store";
+import { joinEvent, useApiEvents, useJoins } from "@/lib/event-store";
 
 export function EventDetails({ id }: { id: string }) {
-  const events = useEvents();
+  const events = useApiEvents();
   const joins = useJoins();
   const { user } = useAuth();
   const { toast } = useToast();

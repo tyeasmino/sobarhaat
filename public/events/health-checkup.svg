@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Community health check-up camp">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e6f0ff"/>
+      <stop offset="100%" stop-color="#bcd6fb"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <rect x="90" y="110" width="620" height="300" rx="28" fill="#ffffff" opacity="0.92"/>
+  <rect x="90" y="110" width="620" height="62" rx="28" fill="#2f6fd0"/>
+  <rect x="90" y="150" width="620" height="22" fill="#2f6fd0"/>
+  <text x="400" y="152" text-anchor="middle" font-family="sans-serif" font-size="28" font-weight="700" fill="#ffffff">FREE HEALTH CAMP</text>
+  <g transform="translate(230 270)">
+    <rect x="-70" y="-40" width="140" height="110" rx="14" fill="#d9e8ff"/>
+    <rect x="-14" y="-70" width="28" height="34" rx="6" fill="#7aa7e8"/>
+    <path d="M-40 10 h80 M0 -30 v80" stroke="#e8574a" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(500 270)">
+    <circle cx="0" cy="-34" r="28" fill="#f2b38a"/>
+    <path d="M-46 66 q46 -80 92 0Z" fill="#4aa3d8"/>
+    <path d="M-70 74 q70 -34 140 0" fill="none" stroke="#2f6fd0" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(608 268)">
+    <circle cx="0" cy="-30" r="24" fill="#e7a87c"/>
+    <path d="M-40 64 q40 -72 80 0Z" fill="#e8574a"/>
+  </g>
+  <text x="400" y="462" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="700" fill="#1d4f9c">Care, camps and check-ups for everyone</text>
+</svg>

@@ -9,6 +9,8 @@ export type EventItem = {
   description: string;
   volunteers: number;
   creatorEmail?: string;
+  creatorName?: string;
+  createdAt?: string;
 };
 
 export const sampleEvents: EventItem[] = [

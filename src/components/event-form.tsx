@@ -89,13 +89,8 @@ type FormValues = {
   description: string;
 };
 
-export function EventForm({ initial }: { initial?: EventItem }) {
-  const router = useRouter();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const today = useToday();
-
-  const [values, setValues] = React.useState<FormValues>({
+function makeInitialValues(initial?: EventItem): FormValues {
+  return {
     title: initial?.title ?? "",
     type: initial?.type ?? "Cleanup",
     location: initial?.location ?? "",
@@ -103,11 +98,21 @@ export function EventForm({ initial }: { initial?: EventItem }) {
     time: initial?.time ?? "10:00",
     thumbnail: initial?.thumbnail ?? defaultThumbnail,
     description: initial?.description ?? "",
-  });
+  };
+}
+
+export function EventForm({ initial }: { initial?: EventItem }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const today = useToday();
+
+  const [values, setValues] = React.useState<FormValues>(() => makeInitialValues(initial));
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [dateOpen, setDateOpen] = React.useState(false);
   const [timeOpen, setTimeOpen] = React.useState(false);
   const [timeDraft, setTimeDraft] = React.useState(() => formatEventTime(values.time));
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const selectedType = eventTypes.find((type) => type.value === values.type) ?? eventTypes[0];
 
@@ -119,6 +124,16 @@ export function EventForm({ initial }: { initial?: EventItem }) {
   function set<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: "" }));
+  }
+
+  // App Router cache-e component ta thakle new event create korar por abar
+  // purono state fire ase — tai success-er sathe-i form-ta clear kore debo.
+  function resetForm() {
+    setValues(makeInitialValues(initial));
+    setErrors({});
+    setDateOpen(false);
+    setTimeOpen(false);
+    setTimeDraft(formatEventTime(initial?.time ?? "10:00"));
   }
 
   function validate() {
@@ -139,9 +154,9 @@ export function EventForm({ initial }: { initial?: EventItem }) {
     return Object.keys(next).length === 0;
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user) return;
+    if (!user || isSaving) return;
     if (!validate()) {
       toast({
         variant: "error",
@@ -151,6 +166,7 @@ export function EventForm({ initial }: { initial?: EventItem }) {
       return;
     }
 
+    // Sir-er pattern: sob dorkari data ekta object-e niye JSON body hisabe pathai.
     const payload: EventItem = {
       id: initial?.id ?? `event-${Date.now()}`,
       title: values.title.trim(),
@@ -162,20 +178,65 @@ export function EventForm({ initial }: { initial?: EventItem }) {
       description: values.description.trim(),
       volunteers: initial?.volunteers ?? 0,
       creatorEmail: user.email,
+      createdAt: initial?.createdAt ?? today,
     };
 
-    if (initial) {
-      updateEvent(payload);
-      toast({ variant: "success", title: "Event updated", description: "Your changes are saved." });
-      router.push("/manage-events");
-    } else {
-      createEvent(payload);
+    setIsSaving(true);
+
+    try {
+      let saved = payload;
+
+      if (!initial) {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+        if (!apiUrl) {
+          toast({
+            variant: "error",
+            title: "Backend is not configured",
+            description: "Add NEXT_PUBLIC_API_URL=http://localhost:8000 to .env and restart the dev server.",
+          });
+          return;
+        }
+
+        const response = await fetch(`${apiUrl}/events`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}. Is the Express server running?`);
+        }
+
+        // Mongo insertOne returns { acknowledged, insertedId }.
+        const result = (await response.json()) as { insertedId?: string };
+        saved = { ...payload, id: result.insertedId ?? payload.id };
+      }
+
+      if (initial) {
+        updateEvent(saved);
+        toast({ variant: "success", title: "Event updated", description: "Your changes are saved." });
+        router.push("/manage-events");
+      } else {
+        // Local cache ta tai porjonto rakhi jate list page-e event-ta immediately dekha jay;
+        // poribar GET /events connect korlei eta server theke asbe.
+        createEvent(saved);
+        resetForm();
+        toast({
+          variant: "success",
+          title: "Event created!",
+          description: "Saved and listed under Upcoming Events.",
+        });
+        router.push("/events");
+      }
+    } catch (cause) {
       toast({
-        variant: "success",
-        title: "Event created!",
-        description: "It is now listed under Upcoming Events.",
+        variant: "error",
+        title: "Could not save the event",
+        description: cause instanceof Error ? cause.message : "Please try again in a moment.",
       });
-      router.push("/events");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -424,8 +485,12 @@ export function EventForm({ initial }: { initial?: EventItem }) {
         </label>
       </Card>
 
-      <Button type="submit" className="h-11 w-full gap-2 rounded-full text-sm sm:w-auto sm:px-8">
-        {initial ? "Save changes" : "Create event"}
+      <Button
+        type="submit"
+        disabled={isSaving}
+        className="h-11 w-full gap-2 rounded-full text-sm sm:w-auto sm:px-8"
+      >
+        {isSaving ? "Saving..." : initial ? "Save changes" : "Create event"}
         <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-4" />
       </Button>
     </form>

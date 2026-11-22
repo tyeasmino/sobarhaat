@@ -22,7 +22,7 @@ import { EventCard } from "@/components/event-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { upcomingOnly, useEvents, useToday } from "@/lib/event-store";
+import { upcomingOnly, useApiEvents, useToday } from "@/lib/event-store";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -39,7 +39,7 @@ const categories = [
 const ALL_TYPES = "All types";
 
 export default function EventsPage() {
-  const events = useEvents();
+  const events = useApiEvents();
   const today = useToday();
   const [query, setQuery] = React.useState("");
   const [type, setType] = React.useState(ALL_TYPES);
