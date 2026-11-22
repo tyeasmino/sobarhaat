@@ -2,8 +2,7 @@
 
 import * as React from "react";
 
-const STORAGE_KEY = "sobar-haat-user";
-const AUTH_EVENT = "sobar-haat-auth";
+import { authClient } from "@/lib/auth-client";
 
 export type AuthUser = {
   name: string;
@@ -11,53 +10,32 @@ export type AuthUser = {
   photoURL: string;
 };
 
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  window.addEventListener(AUTH_EVENT, callback);
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener(AUTH_EVENT, callback);
-  };
-}
-
-function getSnapshot() {
-  return window.localStorage.getItem(STORAGE_KEY) ?? "";
-}
-
-function getServerSnapshot() {
-  return "";
-}
-
 const AuthContext = React.createContext<{
   user: AuthUser | null;
-  signIn: (user: AuthUser) => void;
-  signOut: () => void;
+  isLoading: boolean;
+  signOut: () => Promise<void>;
 } | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const raw = React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { data: session, isPending } = authClient.useSession();
 
-  const user = React.useMemo(() => {
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as AuthUser;
-    } catch {
-      return null;
-    }
-  }, [raw]);
+  const user = React.useMemo<AuthUser | null>(() => {
+    const sessionUser = session?.user;
+    if (!sessionUser) return null;
 
-  const signIn = React.useCallback((nextUser: AuthUser) => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
-    window.dispatchEvent(new Event(AUTH_EVENT));
-  }, []);
+    return {
+      name: sessionUser.name,
+      email: sessionUser.email,
+      photoURL: sessionUser.image ?? "",
+    };
+  }, [session]);
 
-  const signOut = React.useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
-    window.dispatchEvent(new Event(AUTH_EVENT));
+  const signOut = React.useCallback(async () => {
+    await authClient.signOut();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isLoading: isPending, signOut }}>
       {children}
     </AuthContext.Provider>
   );

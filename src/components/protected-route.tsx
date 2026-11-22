@@ -10,27 +10,10 @@ import { Brand } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-function subscribe() {
-  return () => {};
-}
-
-function getSnapshot() {
-  return true;
-}
-
-function getServerSnapshot() {
-  return false;
-}
-
-function useHydrated() {
-  return React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
-
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const hydrated = useHydrated();
+  const { user, isLoading } = useAuth();
 
-  if (!hydrated) {
+  if (isLoading) {
     return (
       <div className="grid min-h-[calc(100vh-8rem)] place-items-center px-4">
         <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

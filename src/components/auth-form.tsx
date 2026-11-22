@@ -14,7 +14,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
-import { useAuth } from "@/components/auth-provider";
 import { Brand } from "@/components/brand";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
@@ -47,15 +46,16 @@ const copy = {
 
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
-  const { signIn } = useAuth();
   const { toast } = useToast();
   const content = copy[mode];
+  const isRegister = mode === "register";
 
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [photoURL, setPhotoURL] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [submitted, setSubmitted] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const checks = {
     uppercase: /[A-Z]/.test(password),
@@ -64,11 +64,31 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   };
   const passwordValid = checks.uppercase && checks.lowercase && checks.length;
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
 
-    if (!passwordValid) {
+    if (!email.trim() || !password) {
+      toast({
+        variant: "error",
+        title: "Missing details",
+        description: "Enter both your email address and password.",
+      });
+      return;
+    }
+
+    if (isRegister && !name.trim()) {
+      toast({
+        variant: "error",
+        title: "Missing details",
+        description: "Tell us your name so neighbours know who they are meeting.",
+      });
+      return;
+    }
+
+    // Password rules are for registration. On login BetterAuth checks the
+    // credentials against the stored account, so we only need a non-empty value.
+    if (isRegister && !passwordValid) {
       toast({
         variant: "error",
         title: "Check your password",
@@ -77,49 +97,72 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
-    const displayName =
-      mode === "register"
-        ? name.trim()
-        : email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    setIsSubmitting(true);
 
-    signIn({
-      name: displayName || "Volunteer",
-      email,
-      photoURL,
-    });
+    try {
+      const { data, error } = isRegister
+        ? await authClient.signUp.email({
+            name: name.trim(),
+            email: email.trim(),
+            password,
+            ...(photoURL.trim() ? { image: photoURL.trim() } : {}),
+          })
+        : await authClient.signIn.email({
+            email: email.trim(),
+            password,
+          });
 
-    toast({
-      variant: "success",
-      title: mode === "login" ? "Welcome back!" : "Account created!",
-      description: "You are signed in. Let us do some good together.",
-    });
-    router.push("/");
-  }
+      if (error || !data) {
+        toast({
+          variant: "error",
+          title: isRegister ? "Could not create account" : "Could not log in",
+          description: error?.message ?? "Please check your details and try again.",
+        });
+        return;
+      }
 
-  function handleGoogle() {
-    toast({
-      variant: "info",
-      title: "Google sign-in",
-      description: "This will connect to BetterAuth once the server is live.",
-    });
-  }
-
-  const handleEmailRegister = async (e: React.SubmitEvent<HTMLElement>) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target)
-    const user = Object.fromEntries(formData.entries()) as { name: string, email: string, image: string, password: string }
-
-    const { data, error } = await authClient.signUp.email({
-      ...user
-    })
-
-    if (data) {
-      console.log(data);
+      toast({
+        variant: "success",
+        title: isRegister ? "Account created!" : "Welcome back!",
+        description: "You are signed in. Let us do some good together.",
+      });
+      router.replace("/");
+      router.refresh();
+    } catch (cause) {
+      toast({
+        variant: "error",
+        title: "Something went wrong",
+        description: cause instanceof Error ? cause.message : "Please try again in a moment.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
+  }
 
-    if (error) {
-      console.log(error);
+  async function handleGoogle() {
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+
+      if (error) {
+        toast({
+          variant: "error",
+          title: "Google sign-in failed",
+          description: error.message ?? "Please try again in a moment.",
+        });
+      }
+    } catch (cause) {
+      toast({
+        variant: "error",
+        title: "Something went wrong",
+        description: cause instanceof Error ? cause.message : "Please try again in a moment.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -165,8 +208,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               </h1>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{content.text}</p>
 
-              <form onSubmit={handleEmailRegister} className="mt-6 grid gap-4" noValidate>
-                {mode === "register" ? (
+              <form onSubmit={handleSubmit} className="mt-6 grid gap-4" noValidate>
+                {isRegister ? (
                   <label className="grid gap-1.5">
                     <span className="text-xs font-medium text-foreground">Full name</span>
                     <span className="relative block">
@@ -209,7 +252,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                   </span>
                 </label>
 
-                {mode === "register" ? (
+                {isRegister ? (
                   <label className="grid gap-1.5">
                     <span className="text-xs font-medium text-foreground">
                       Photo URL <span className="font-normal text-muted-foreground">(optional)</span>
@@ -245,38 +288,44 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="At least 6 characters"
-                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                    placeholder={isRegister ? "At least 6 characters" : "Your password"}
+                    autoComplete={isRegister ? "new-password" : "current-password"}
                     required
                     className="h-10 bg-background/60 text-sm"
                   />
                 </div>
 
-                <ul className="flex flex-wrap gap-x-4 gap-y-1">
-                  {[
-                    { label: "Uppercase letter", ok: checks.uppercase },
-                    { label: "Lowercase letter", ok: checks.lowercase },
-                    { label: "6+ characters", ok: checks.length },
-                  ].map((rule) => (
-                    <li
-                      key={rule.label}
-                      className={`flex items-center gap-1 text-[0.65rem] ${rule.ok ? "text-primary" : "text-muted-foreground"
-                        }`}
-                    >
-                      <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-3" />
-                      {rule.label}
-                    </li>
-                  ))}
-                </ul>
+                {isRegister ? (
+                  <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                    {[
+                      { label: "Uppercase letter", ok: checks.uppercase },
+                      { label: "Lowercase letter", ok: checks.lowercase },
+                      { label: "6+ characters", ok: checks.length },
+                    ].map((rule) => (
+                      <li
+                        key={rule.label}
+                        className={`flex items-center gap-1 text-[0.65rem] ${rule.ok ? "text-primary" : "text-muted-foreground"
+                          }`}
+                      >
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-3" />
+                        {rule.label}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
 
-                {submitted && !passwordValid ? (
+                {isRegister && submitted && !passwordValid ? (
                   <p className="text-xs text-destructive">
                     Password needs an uppercase letter, a lowercase letter and at least 6 characters.
                   </p>
                 ) : null}
 
-                <Button type="submit" className="h-11 w-full gap-2 rounded-full text-sm">
-                  {content.action}
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-11 w-full gap-2 rounded-full text-sm"
+                >
+                  {isSubmitting ? "Please wait..." : content.action}
                   <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-4" />
                 </Button>
               </form>
@@ -290,6 +339,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               <Button
                 type="button"
                 variant="outline"
+                disabled={isSubmitting}
                 onClick={handleGoogle}
                 className="h-11 w-full gap-2 rounded-full bg-background/50 text-sm"
               >

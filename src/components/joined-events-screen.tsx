@@ -15,7 +15,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatEventDate } from "@/lib/events";
+import { formatEventDate, formatEventTime } from "@/lib/events";
 import { useEvents, useJoins } from "@/lib/event-store";
 
 export function JoinedEventsScreen() {
@@ -72,7 +72,7 @@ export function JoinedEventsScreen() {
                   <div className="mt-3 grid gap-2 text-[0.7rem] text-muted-foreground">
                     <span className="flex items-center gap-2">
                       <HugeiconsIcon icon={Calendar03Icon} strokeWidth={1.6} className="size-3.5 text-primary" />
-                      {formatEventDate(event.date)} · {event.time}
+                      {formatEventDate(event.date)} · {formatEventTime(event.time)}
                     </span>
                     <span className="flex items-center gap-2">
                       <HugeiconsIcon icon={Location01Icon} strokeWidth={1.6} className="size-3.5 text-primary" />

@@ -8,7 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { formatEventDate, type EventItem } from "@/lib/events";
+import { formatEventDate, formatEventTime, type EventItem } from "@/lib/events";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,7 +42,7 @@ export function EventCard({ event }: { event: EventItem }) {
         <div className="mt-4 grid gap-2 text-[0.7rem] text-muted-foreground">
           <span className="flex items-center gap-2">
             <HugeiconsIcon icon={Calendar03Icon} strokeWidth={1.6} className="size-3.5 text-primary" />
-            {formatEventDate(event.date)} · {event.time}
+            {formatEventDate(event.date)} · {formatEventTime(event.time)}
           </span>
           <span className="flex items-center gap-2">
             <HugeiconsIcon icon={Location01Icon} strokeWidth={1.6} className="size-3.5 text-primary" />

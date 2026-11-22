@@ -131,3 +131,27 @@ export function formatEventDate(date: string) {
     timeZone: "UTC",
   }).format(new Date(`${date}T00:00:00Z`));
 }
+
+// Stored times stay canonical 24-hour "HH:MM"; show them as 12-hour AM/PM.
+export function formatEventTime(time: string) {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return time;
+
+  const hours = Number(match[1]);
+  const minutes = match[2];
+  const period = hours >= 12 ? "PM" : "AM";
+  return `${hours % 12 || 12}:${minutes} ${period}`;
+}
+
+// Accepts "10:30 AM", "10:30am", "9 AM" etc. and returns canonical "HH:MM".
+export function parseEventTime(value: string) {
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2] ?? 0);
+  if (hours < 1 || hours > 12 || minutes > 59) return null;
+
+  const hour24 = (hours % 12) + (match[3].toLowerCase() === "pm" ? 12 : 0);
+  return `${String(hour24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}

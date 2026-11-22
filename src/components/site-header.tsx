@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -70,10 +71,11 @@ export function SiteHeader() {
   const { toast } = useToast();
   const router = useRouter();
 
-  function handleLogout() {
-    signOut();
+  async function handleLogout() {
+    await signOut();
     toast({ variant: "info", title: "Logged out", description: "See you soon." });
     router.push("/");
+    router.refresh();
   }
 
   return (
@@ -119,12 +121,14 @@ export function SiteHeader() {
                 <TooltipContent>{user.name}</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                <DropdownMenuLabel className="truncate">
-                  <span className="block text-xs font-semibold text-foreground">{user.name}</span>
-                  <span className="block truncate text-[0.65rem] font-normal text-muted-foreground">
-                    {user.email}
-                  </span>
-                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="truncate">
+                    <span className="block text-xs font-semibold text-foreground">{user.name}</span>
+                    <span className="block truncate text-[0.65rem] font-normal text-muted-foreground">
+                      {user.email}
+                    </span>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 {privateLinks.map((link) => (
                   <DropdownMenuItem key={link.href} render={<Link href={link.href} />}>

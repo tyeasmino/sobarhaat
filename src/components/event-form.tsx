@@ -1,32 +1,81 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { ArrowRight02Icon, Calendar03Icon, Location01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowRight02Icon,
+  Calendar03Icon,
+  Clock01Icon,
+  CookingPotIcon,
+  GiftIcon,
+  HeartPulseIcon,
+  Location01Icon,
+  Plant01Icon,
+  Recycle01Icon,
+  SnowflakeIcon,
+  UmbrellaIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { cn } from "cn";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { EventItem } from "@/lib/events";
 import { createEvent, updateEvent, useToday } from "@/lib/event-store";
+import {
+  formatEventDate,
+  formatEventTime,
+  parseEventTime,
+  type EventItem,
+} from "@/lib/events";
 
 const eventTypes = [
-  "Cleanup",
-  "Plantation",
-  "Donation",
-  "Winter Support",
-  "Food Support",
-  "Flood Relief",
-  "Health",
+  { value: "Cleanup", icon: Recycle01Icon, hint: "Keep our neighbourhoods clean" },
+  { value: "Plantation", icon: Plant01Icon, hint: "Grow something green together" },
+  { value: "Donation", icon: GiftIcon, hint: "Share what you have" },
+  { value: "Winter Support", icon: SnowflakeIcon, hint: "Warmth for those who need it" },
+  { value: "Food Support", icon: CookingPotIcon, hint: "A meal for a neighbour" },
+  { value: "Flood Relief", icon: UmbrellaIcon, hint: "Stand beside affected families" },
+  { value: "Health", icon: HeartPulseIcon, hint: "Care, camps and check-ups" },
 ];
+
+const timeSlots = [
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+];
+
+function toDateInputValue(day: Date) {
+  const month = String(day.getMonth() + 1).padStart(2, "0");
+  const date = String(day.getDate()).padStart(2, "0");
+  return `${day.getFullYear()}-${month}-${date}`;
+}
 
 const defaultThumbnail = "/events/winter-clothes.svg";
 
@@ -56,6 +105,16 @@ export function EventForm({ initial }: { initial?: EventItem }) {
     description: initial?.description ?? "",
   });
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [dateOpen, setDateOpen] = React.useState(false);
+  const [timeOpen, setTimeOpen] = React.useState(false);
+  const [timeDraft, setTimeDraft] = React.useState(() => formatEventTime(values.time));
+
+  const selectedType = eventTypes.find((type) => type.value === values.type) ?? eventTypes[0];
+
+  // `useToday()` gives a stable server snapshot during hydration; the calendar
+  // is only mounted in a popover after the client has the real date.
+  const minDate = React.useMemo(() => new Date(`${today}T00:00:00`), [today]);
+  const selectedDate = values.date ? new Date(`${values.date}T00:00:00`) : undefined;
 
   function set<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -121,6 +180,9 @@ export function EventForm({ initial }: { initial?: EventItem }) {
   }
 
   const fieldClass = "h-10 bg-background/60 text-sm";
+  // Same box model as the title/location Inputs (h-10, rounded-md, border-input, px-2).
+  const pickerTriggerClass =
+    "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background/60 px-2 text-sm text-foreground transition-colors outline-none hover:border-primary/40 hover:bg-primary/5 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 data-[size=default]:h-10 data-popup-open:border-primary data-popup-open:bg-primary/5";
 
   return (
     <form onSubmit={handleSubmit} noValidate className="grid gap-5">
@@ -137,21 +199,48 @@ export function EventForm({ initial }: { initial?: EventItem }) {
         </label>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <label className="grid gap-1.5">
+          <div className="grid gap-1.5">
             <span className="text-xs font-medium text-foreground">Event type</span>
-            <NativeSelect
+            <Select
               value={values.type}
-              onChange={(event) => set("type", event.target.value)}
-              className={`${fieldClass} w-full`}
+              onValueChange={(value) => {
+                if (value) set("type", value);
+              }}
             >
-              {eventTypes.map((type) => (
-                <NativeSelectOption key={type} value={type}>
-                  {type}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+              <SelectTrigger className={pickerTriggerClass}>
+                <span className="flex items-center gap-2.5">
+                  <HugeiconsIcon
+                    icon={selectedType.icon}
+                    strokeWidth={1.8}
+                    className="size-4 text-primary"
+                  />
+                  <SelectValue>{selectedType.value}</SelectValue>
+                </span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-border/70 bg-popover p-1.5 shadow-xl">
+                {eventTypes.map((type) => (
+                  <SelectItem
+                    key={type.value}
+                    value={type.value}
+                    className="gap-2.5 rounded-lg py-2 pr-9 pl-2.5 text-sm"
+                  >
+                    <HugeiconsIcon
+                      icon={type.icon}
+                      strokeWidth={1.8}
+                      className="size-4 shrink-0 text-primary"
+                    />
+                    <span className="flex flex-col gap-0.5">
+                      <span className="font-medium text-foreground">{type.value}</span>
+                      <span className="text-[0.65rem] leading-4 text-muted-foreground">
+                        {type.hint}
+                      </span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.type ? <span className="text-xs text-destructive">{errors.type}</span> : null}
-          </label>
+          </div>
 
           <label className="grid gap-1.5">
             <span className="text-xs font-medium text-foreground">Location</span>
@@ -173,35 +262,134 @@ export function EventForm({ initial }: { initial?: EventItem }) {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <label className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <span className="text-xs font-medium text-foreground">Event date</span>
-            <span className="relative block">
-              <HugeiconsIcon
-                icon={Calendar03Icon}
-                strokeWidth={1.6}
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
-                type="date"
-                min={today}
-                value={values.date}
-                onChange={(event) => set("date", event.target.value)}
-                className={`${fieldClass} pl-9`}
-              />
-            </span>
-            {errors.date ? <span className="text-xs text-destructive">{errors.date}</span> : null}
-          </label>
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+              <PopoverTrigger className={pickerTriggerClass}>
+                <span className={cn("truncate", !values.date && "text-muted-foreground")}>
+                  {values.date ? formatEventDate(values.date) : "Choose a date"}
+                </span>
+                <HugeiconsIcon
+                  icon={Calendar03Icon}
+                  strokeWidth={1.8}
+                  className="size-4 shrink-0 text-primary"
+                />
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-auto rounded-xl border border-border/70 bg-popover p-3 shadow-xl"
+              >
+                <div className="grid gap-1">
+                  <PopoverTitle className="text-sm font-semibold text-foreground">
+                    Pick an event date
+                  </PopoverTitle>
+                  <PopoverDescription className="text-xs text-muted-foreground">
+                    Today and future dates only
+                  </PopoverDescription>
+                </div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(day) => {
+                    if (!day) return;
+                    set("date", toDateInputValue(day));
+                    setDateOpen(false);
+                  }}
+                  disabled={{ before: minDate }}
+                  defaultMonth={selectedDate ?? minDate}
+                  className="rounded-lg"
+                />
+              </PopoverContent>
+            </Popover>
+            {errors.date ? (
+              <span className="text-xs text-destructive">{errors.date}</span>
+            ) : (
+              <span className="text-[0.65rem] text-muted-foreground">
+                Must be today or later.
+              </span>
+            )}
+          </div>
 
-          <label className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <span className="text-xs font-medium text-foreground">Start time</span>
-            <Input
-              type="time"
-              value={values.time}
-              onChange={(event) => set("time", event.target.value)}
-              className={fieldClass}
-            />
-            {errors.time ? <span className="text-xs text-destructive">{errors.time}</span> : null}
-          </label>
+            <Popover
+              open={timeOpen}
+              onOpenChange={(open) => {
+                if (open) setTimeDraft(formatEventTime(values.time));
+                setTimeOpen(open);
+              }}
+            >
+              <PopoverTrigger className={pickerTriggerClass}>
+                <span className={cn("truncate", !values.time && "text-muted-foreground")}>
+                  {values.time ? formatEventTime(values.time) : "Choose a time"}
+                </span>
+                <HugeiconsIcon
+                  icon={Clock01Icon}
+                  strokeWidth={1.8}
+                  className="size-4 shrink-0 text-primary"
+                />
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-72 rounded-xl border border-border/70 bg-popover p-3 shadow-xl"
+              >
+                <div className="grid gap-1">
+                  <PopoverTitle className="text-sm font-semibold text-foreground">
+                    When does it start?
+                  </PopoverTitle>
+                  <PopoverDescription className="text-xs text-muted-foreground">
+                    Pick a quick slot or set an exact time.
+                  </PopoverDescription>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {timeSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => {
+                        set("time", slot);
+                        setTimeOpen(false);
+                      }}
+                      className={cn(
+                        "h-9 rounded-lg border text-xs font-medium transition-colors",
+                        values.time === slot
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/70 bg-background/60 text-foreground hover:border-primary/40 hover:bg-primary/5"
+                      )}
+                    >
+                      {formatEventTime(slot)}
+                    </button>
+                  ))}
+                </div>
+                <label className="grid gap-1.5 border-t border-border/70 pt-3">
+                  <span className="text-[0.65rem] font-medium tracking-wider text-muted-foreground uppercase">
+                    Exact time
+                  </span>
+                  <Input
+                    value={timeDraft}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setTimeDraft(next);
+                      const parsed = parseEventTime(next);
+                      if (parsed) set("time", parsed);
+                    }}
+                    placeholder="e.g. 10:30 AM"
+                    className="h-10 bg-background/60 text-sm"
+                  />
+                  <span className="text-[0.65rem] text-muted-foreground">
+                    Use AM or PM, for example 7:30 AM or 2:15 PM.
+                  </span>
+                </label>
+              </PopoverContent>
+            </Popover>
+            {errors.time ? (
+              <span className="text-xs text-destructive">{errors.time}</span>
+            ) : (
+              <span className="text-[0.65rem] text-muted-foreground">
+                Pick a slot or type an exact time.
+              </span>
+            )}
+          </div>
         </div>
 
         <label className="grid gap-1.5">

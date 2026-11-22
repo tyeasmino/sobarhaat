@@ -20,7 +20,7 @@ import { useToast } from "@/components/toast-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatEventDate } from "@/lib/events";
+import { formatEventDate, formatEventTime } from "@/lib/events";
 import { joinEvent, useEvents, useJoins } from "@/lib/event-store";
 
 export function EventDetails({ id }: { id: string }) {
@@ -114,7 +114,7 @@ export function EventDetails({ id }: { id: string }) {
                 <span>
                   <span className="block text-[0.65rem] text-muted-foreground">When</span>
                   <span className="block text-sm font-medium text-foreground">
-                    {formatEventDate(event.date)} · {event.time}
+                    {formatEventDate(event.date)} · {formatEventTime(event.time)}
                   </span>
                 </span>
               </div>
