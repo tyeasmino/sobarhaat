@@ -1,15 +1,43 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { auth } from "@/lib/auth";
+
 const authPages = new Set(["/login", "/register"]);
+const privatePages = ["/create-event", "/manage-events", "/joined-events"];
 
-export function proxy(request: NextRequest) {
+function isPrivate(pathname: string) {
+  return privatePages.some(
+    (page) => pathname === page || pathname.startsWith(`${page}/`)
+  );
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const needsAuth = isPrivate(pathname);
+  const isAuthPage = authPages.has(pathname);
 
-  // Logged-in users have no reason to see the auth screens. This is an
-  // optimistic check based on the BetterAuth session cookie; the actual
-  // session is validated by BetterAuth on the client via `useSession()`.
-  if (authPages.has(pathname) && getSessionCookie(request)) {
+  if (!needsAuth && !isAuthPage) return NextResponse.next();
+
+  // Fast path: no cookie at all means there is no session to look up.
+  if (!getSessionCookie(request)) {
+    if (needsAuth) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Next.js 16 Proxy uses the Node.js runtime, so the MongoDB-backed
+  // BetterAuth adapter works here. Sir-er pattern: getSession(headers).
+  const session = await auth.api.getSession({ headers: request.headers });
+  const user = session?.user;
+
+  if (needsAuth && !user) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Logged-in users have no reason to see the auth screens.
+  if (isAuthPage && user) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -17,5 +45,12 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register"],
+  matcher: [
+    "/login",
+    "/register",
+    "/create-event",
+    "/manage-events",
+    "/manage-events/:path*",
+    "/joined-events",
+  ],
 };

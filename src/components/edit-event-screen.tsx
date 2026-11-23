@@ -6,13 +6,14 @@ import { useAuth } from "@/components/auth-provider";
 import { EventForm } from "@/components/event-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useEvents } from "@/lib/event-store";
+import { useEvent } from "@/lib/events-api";
 
 export function EditEventScreen({ id }: { id: string }) {
-  const events = useEvents();
+  const { event, isLoading } = useEvent(id);
   const { user } = useAuth();
-  const event = events.find((item) => item.id === id);
-  const isOwner = Boolean(event && user && event.creatorEmail === user.email);
+  const isOwner = Boolean(
+    event && user && event.creatorEmail?.toLowerCase() === user.email.toLowerCase()
+  );
 
   return (
     <section className="py-12 sm:py-16">
@@ -28,7 +29,11 @@ export function EditEventScreen({ id }: { id: string }) {
         </p>
 
         <div className="mt-8">
-          {!event ? (
+          {isLoading ? (
+            <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
+              <p className="text-sm text-muted-foreground">Loading event...</p>
+            </div>
+          ) : !event ? (
             <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
               <p className="font-heading text-base font-semibold text-foreground">Event not found</p>
               <Button render={<Link href="/manage-events" />} className="mt-5 rounded-full">

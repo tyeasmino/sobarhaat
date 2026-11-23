@@ -125,6 +125,10 @@ export async function getRecentEvents(): Promise<EventItem[]> {
   }
 }
 
+export function upcomingOnly(events: EventItem[], today: string) {
+  return events.filter((event) => event.date >= today);
+}
+
 export function formatEventDate(date: string) {
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",

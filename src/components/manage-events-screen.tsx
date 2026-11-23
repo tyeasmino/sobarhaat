@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import Image from "next/image";
-import Link from "next/link";
 import {
   Add01Icon,
   Calendar03Icon,
@@ -14,12 +11,12 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "cn";
+import Image from "next/image";
+import Link from "next/link";
+import * as React from "react";
 
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,37 +28,55 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useNow, useToday } from "@/lib/clock";
 import { formatEventDate, formatEventTime, parseEventTime, type EventItem } from "@/lib/events";
-import { deleteEvent, useEvents, useNow, useToday } from "@/lib/event-store";
-
-// Mongo documents carry `_id`; the client also stores a legacy `id` field.
-// `_id` is canonical because createEvent() caches the insertedId locally too.
-type ApiEvent = Partial<EventItem> & { _id?: string };
-
-function normalizeEvent(raw: ApiEvent, index: number): EventItem {
-  return {
-    id: raw._id ?? raw.id ?? `event-${index}`,
-    title: raw.title ?? "Untitled event",
-    type: raw.type ?? "Donation",
-    location: raw.location ?? "",
-    date: raw.date ?? "",
-    time: raw.time ?? "10:00",
-    thumbnail: raw.thumbnail ?? "/events/winter-clothes.svg",
-    description: raw.description ?? "",
-    volunteers: typeof raw.volunteers === "number" ? raw.volunteers : 0,
-    creatorEmail: raw.creatorEmail,
-    creatorName: raw.creatorName,
-    createdAt: raw.createdAt,
-  };
-}
+import { deleteEvent, useMyEvents } from "@/lib/events-api";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
-function EventRow({ event }: { event: EventItem }) {
+function EventRow({ event, token }: { event: EventItem; token?: string }) {
   const [open, setOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
   const today = useToday();
   const now = useNow();
+
+  // UI guard only — the Express route resolves the real owner from the
+  // signed-in BetterAuth session, so a forged request is still rejected.
+  const isOwner =
+    !!user?.email &&
+    (!event.creatorEmail ||
+      event.creatorEmail.toLowerCase() === user.email.toLowerCase());
+
+  async function handleDeleteEvent() {
+    if (!user?.email) {
+      toast({
+        variant: "error",
+        title: "Could not delete event",
+        description: "Your session is not available. Please sign in again.",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteEvent(event.id, token);
+      setOpen(false);
+      toast({ variant: "success", title: "Event deleted" });
+    } catch (cause) {
+      toast({
+        variant: "error",
+        title: "Could not delete event",
+        description: cause instanceof Error ? cause.message : "Please try again.",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   // Status depends on the exact event moment (date + time), not just the day.
   const canonicalTime = parseEventTime(event.time) ?? event.time;
@@ -77,9 +92,9 @@ function EventRow({ event }: { event: EventItem }) {
   const createdDate = event.createdAt ?? today;
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden rounded-3xl border-border/70 bg-card/70 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
+    <Card className="group relative flex h-full flex-col overflow-hidden rounded-2xl border-border/70 bg-card/70 p-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
       {/* Full-bleed cover */}
-      <div className="relative aspect-[16/10] overflow-hidden">
+      <div className="relative aspect-[16/10] overflow-hidden rounded-t-2xl">
         <Image
           src={event.thumbnail}
           alt={event.title}
@@ -150,6 +165,7 @@ function EventRow({ event }: { event: EventItem }) {
           variant="outline"
           size="sm"
           render={<Link href={`/manage-events/${event.id}/edit`} />}
+          disabled={!isOwner}
           className="h-8 flex-1 gap-1.5 rounded-full text-[0.7rem]"
         >
           <HugeiconsIcon icon={PencilIcon} strokeWidth={1.8} className="size-3.5" />
@@ -161,6 +177,7 @@ function EventRow({ event }: { event: EventItem }) {
               <Button
                 variant="ghost"
                 size="icon"
+                disabled={!isOwner}
                 aria-label={`Delete ${event.title}`}
                 className="size-8 shrink-0 rounded-full text-destructive hover:bg-destructive/10"
               />
@@ -179,13 +196,10 @@ function EventRow({ event }: { event: EventItem }) {
               <AlertDialogCancel>Keep it</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
-                onClick={() => {
-                  deleteEvent(event.id);
-                  setOpen(false);
-                  toast({ variant: "success", title: "Event deleted" });
-                }}
+                disabled={isDeleting || !isOwner}
+                onClick={handleDeleteEvent}
               >
-                Delete event
+                {isDeleting ? "Deleting..." : "Delete event"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -195,58 +209,20 @@ function EventRow({ event }: { event: EventItem }) {
   );
 }
 
-export function ManageEventsScreen() {
+export function ManageEventsScreen({ token }: { token?: string }) {
   const { user } = useAuth();
-  // Local store change (create/edit/delete) triggers a fresh fetch so the list
-  // never goes stale while the backend is the source of truth.
-  const localEvents = useEvents();
-  const [mine, setMine] = React.useState<EventItem[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState("");
-  const [reloadKey, setReloadKey] = React.useState(0);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  React.useEffect(() => {
-    const email = user?.email;
-    if (!email || !apiUrl) return;
-
-    const controller = new AbortController();
-    let active = true;
-
-    async function load(ownerEmail: string) {
-      setIsLoading(true);
-      setError("");
-      try {
-        const response = await fetch(
-          `${apiUrl}/manage-events/${encodeURIComponent(ownerEmail)}`,
-          { signal: controller.signal }
-        );
-        if (!response.ok) {
-          throw new Error(`Server returned ${response.status}. Is the Express server running?`);
-        }
-        const data = (await response.json()) as ApiEvent[];
-        const list = Array.isArray(data)
-          ? data.map(normalizeEvent).sort((a, b) => b.date.localeCompare(a.date))
-          : [];
-        if (active) setMine(list);
-      } catch (cause) {
-        if (controller.signal.aborted) return;
-        setError(cause instanceof Error ? cause.message : "Could not load your events.");
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    }
-
-    load(email);
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, [user?.email, localEvents, reloadKey, apiUrl]);
+  // JWT from the server component (`auth.api.getToken`) is sent as
+  // Authorization: Bearer <jwt>; the Express API verifies it against JWKS.
+  const {
+    events: mine,
+    isLoading,
+    error,
+    reload,
+  } = useMyEvents(user?.email, token);
 
   return (
     <section className="py-12 sm:py-16">
-      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <Badge variant="outline" className="rounded-full px-3 py-1">
@@ -266,26 +242,20 @@ export function ManageEventsScreen() {
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {!apiUrl || error ? (
+          {error ? (
             <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
               <p className="font-heading text-base font-semibold text-foreground">
                 Could not load your events
               </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {apiUrl
-                  ? error
-                  : "Add NEXT_PUBLIC_API_URL=http://localhost:8000 to .env and restart the dev server."}
-              </p>
-              {apiUrl ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setReloadKey((key) => key + 1)}
-                  className="mt-4 h-9 rounded-lg text-xs"
-                >
-                  Try again
-                </Button>
-              ) : null}
+              <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={reload}
+                className="mt-4 h-9 rounded-lg text-xs"
+              >
+                Try again
+              </Button>
             </div>
           ) : isLoading ? (
             <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
@@ -297,7 +267,9 @@ export function ManageEventsScreen() {
               </p>
             </div>
           ) : mine.length ? (
-            mine.map((event) => <EventRow key={event.id} event={event} />)
+            [...mine]
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((event) => <EventRow key={event.id} event={event} token={token} />)
           ) : (
             <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
               <p className="font-heading text-base font-semibold text-foreground">

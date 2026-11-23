@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,26 +10,14 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { useAuth } from "@/components/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatEventDate, formatEventTime } from "@/lib/events";
-import { useEvents, useJoins } from "@/lib/event-store";
+import { useJoinedEvents } from "@/lib/events-api";
 
 export function JoinedEventsScreen() {
-  const events = useEvents();
-  const joins = useJoins();
-  const { user } = useAuth();
-
-  const joined = React.useMemo(() => {
-    const ids = new Set(
-      joins.filter((join) => join.userEmail === user?.email).map((join) => join.eventId)
-    );
-    return events
-      .filter((event) => ids.has(event.id))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }, [events, joins, user?.email]);
+  const { events: joined, isLoading, error, reload } = useJoinedEvents();
 
   return (
     <section className="py-12 sm:py-16">
@@ -45,6 +32,21 @@ export function JoinedEventsScreen() {
           Your service drives, sorted by the date you are needed.
         </p>
 
+        {isLoading ? (
+          <div className="mt-8 rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
+            <p className="text-sm text-muted-foreground">Loading your joined events...</p>
+          </div>
+        ) : error ? (
+          <div className="mt-8 rounded-2xl border border-dashed border-destructive/40 bg-destructive/5 p-12 text-center">
+            <p className="font-heading text-base font-semibold text-foreground">
+              Could not load joined events
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+            <Button variant="outline" onClick={reload} className="mt-5 rounded-full">
+              Try again
+            </Button>
+          </div>
+        ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {joined.length ? (
             joined.map((event) => (
@@ -104,6 +106,7 @@ export function JoinedEventsScreen() {
             </div>
           )}
         </div>
+        )}
       </div>
     </section>
   );

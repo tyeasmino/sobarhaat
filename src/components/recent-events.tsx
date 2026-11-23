@@ -14,60 +14,21 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatEventDate, formatEventTime, type EventItem } from "@/lib/events";
-import { upcomingOnly, useEvents, useToday } from "@/lib/event-store";
-
-// Mongo sends `_id`, while the local store uses `id`. Normalize so keys stay
-// unique and remote/local events don't collapse into one.
-type ApiEvent = Partial<EventItem> & { _id?: string };
-
-function normalizeRemote(raw: ApiEvent): EventItem {
-  return {
-    id: raw._id ?? raw.id ?? `${raw.title ?? "event"}-${raw.date ?? ""}`,
-    title: raw.title ?? "Untitled event",
-    type: raw.type ?? "Donation",
-    location: raw.location ?? "",
-    date: raw.date ?? "",
-    time: raw.time ?? "10:00",
-    thumbnail: raw.thumbnail ?? "/events/winter-clothes.svg",
-    description: raw.description ?? "",
-    volunteers: typeof raw.volunteers === "number" ? raw.volunteers : 0,
-    creatorEmail: raw.creatorEmail,
-    creatorName: raw.creatorName,
-    createdAt: raw.createdAt,
-  };
-}
+import { formatEventDate, formatEventTime, upcomingOnly } from "@/lib/events";
+import { useToday } from "@/lib/clock";
+import { useRecentEvents } from "@/lib/events-api";
 
 export function RecentEvents() {
-  const localEvents = useEvents();
   const today = useToday();
-  const [remoteEvents, setRemoteEvents] = React.useState<EventItem[]>([]);
+  const { events: remoteEvents } = useRecentEvents();
 
-  React.useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) return;
-
-    const controller = new AbortController();
-    fetch(`${apiUrl}/events/recent?limit=6`, { signal: controller.signal })
-      .then((response) => (response.ok ? response.json() : []))
-      .then((payload: unknown) => {
-        const list = Array.isArray(payload)
-          ? payload
-          : (payload as { events?: unknown[] })?.events;
-        if (Array.isArray(list)) setRemoteEvents(list.map((raw) => normalizeRemote(raw as ApiEvent)));
-      })
-      .catch(() => {});
-
-    return () => controller.abort();
-  }, []);
-
-  const events = React.useMemo(() => {
-    const byId = new Map<string, EventItem>();
-    for (const event of [...remoteEvents, ...localEvents]) byId.set(event.id, event);
-    return upcomingOnly([...byId.values()], today)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 6);
-  }, [localEvents, remoteEvents, today]);
+  const events = React.useMemo(
+    () =>
+      upcomingOnly(remoteEvents, today)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, 6),
+    [remoteEvents, today]
+  );
 
   return (
     <section className="py-16 sm:py-20">

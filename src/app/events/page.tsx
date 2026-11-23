@@ -22,7 +22,9 @@ import { EventCard } from "@/components/event-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { upcomingOnly, useApiEvents, useToday } from "@/lib/event-store";
+import { useToday } from "@/lib/clock";
+import { upcomingOnly } from "@/lib/events";
+import { useEvents } from "@/lib/events-api";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -39,7 +41,7 @@ const categories = [
 const ALL_TYPES = "All types";
 
 export default function EventsPage() {
-  const events = useApiEvents();
+  const { events, isLoading, error } = useEvents();
   const today = useToday();
   const [query, setQuery] = React.useState("");
   const [type, setType] = React.useState(ALL_TYPES);
@@ -173,7 +175,18 @@ export default function EventsPage() {
           </div>
         </div>
 
-        {filtered.length ? (
+        {isLoading ? (
+          <div className="mt-6 rounded-3xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
+            <p className="text-sm text-muted-foreground">Loading events from MongoDB...</p>
+          </div>
+        ) : error ? (
+          <div className="mt-6 rounded-3xl border border-dashed border-destructive/40 bg-destructive/5 p-12 text-center">
+            <p className="font-heading text-base font-semibold text-foreground">
+              Could not load events
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+          </div>
+        ) : filtered.length ? (
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((event) => (
               <EventCard key={event.id} event={event} />

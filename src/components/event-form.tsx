@@ -39,7 +39,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createEvent, updateEvent, useToday } from "@/lib/event-store";
+import { useToday } from "@/lib/clock";
+import { createEvent, updateEvent } from "@/lib/events-api";
 import {
   formatEventDate,
   formatEventTime,
@@ -184,43 +185,12 @@ export function EventForm({ initial }: { initial?: EventItem }) {
     setIsSaving(true);
 
     try {
-      let saved = payload;
-
-      if (!initial) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-        if (!apiUrl) {
-          toast({
-            variant: "error",
-            title: "Backend is not configured",
-            description: "Add NEXT_PUBLIC_API_URL=http://localhost:8000 to .env and restart the dev server.",
-          });
-          return;
-        }
-
-        const response = await fetch(`${apiUrl}/events`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Server returned ${response.status}. Is the Express server running?`);
-        }
-
-        // Mongo insertOne returns { acknowledged, insertedId }.
-        const result = (await response.json()) as { insertedId?: string };
-        saved = { ...payload, id: result.insertedId ?? payload.id };
-      }
-
       if (initial) {
-        updateEvent(saved);
+        await updateEvent(payload);
         toast({ variant: "success", title: "Event updated", description: "Your changes are saved." });
         router.push("/manage-events");
       } else {
-        // Local cache ta tai porjonto rakhi jate list page-e event-ta immediately dekha jay;
-        // poribar GET /events connect korlei eta server theke asbe.
-        createEvent(saved);
+        await createEvent(payload);
         resetForm();
         toast({
           variant: "success",

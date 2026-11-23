@@ -21,19 +21,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatEventDate, formatEventTime } from "@/lib/events";
-import { joinEvent, useApiEvents, useJoins } from "@/lib/event-store";
+import { joinEvent, useEvent, useJoinedEvents } from "@/lib/events-api";
 
 export function EventDetails({ id }: { id: string }) {
-  const events = useApiEvents();
-  const joins = useJoins();
+  const { event, isLoading } = useEvent(id);
+  const { events: joinedEvents } = useJoinedEvents();
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  const event = events.find((item) => item.id === id);
-  const joined = Boolean(
-    user && joins.some((join) => join.eventId === id && join.userEmail === user.email)
-  );
+  const joined = joinedEvents.some((item) => item.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-24 text-center">
+        <p className="text-sm text-muted-foreground">Loading event...</p>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -49,7 +54,7 @@ export function EventDetails({ id }: { id: string }) {
     );
   }
 
-  function handleJoin() {
+  async function handleJoin() {
     if (!user) {
       toast({
         variant: "info",
@@ -60,14 +65,22 @@ export function EventDetails({ id }: { id: string }) {
       return;
     }
 
-    const added = joinEvent(id, user.email);
-    toast({
-      variant: added ? "success" : "info",
-      title: added ? "You are in!" : "Already joined",
-      description: added
-        ? `You joined ${event?.title}. Find it under Joined Events.`
-        : "This drive is already on your list.",
-    });
+    try {
+      const result = await joinEvent(id);
+      toast({
+        variant: result.joined ? "success" : "info",
+        title: result.joined ? "You are in!" : "Already joined",
+        description: result.joined
+          ? `You joined ${event?.title ?? "this event"}. Find it under Joined Events.`
+          : "This drive is already on your list.",
+      });
+    } catch (cause) {
+      toast({
+        variant: "error",
+        title: "Could not join this event",
+        description: cause instanceof Error ? cause.message : "Please try again.",
+      });
+    }
   }
 
   return (
@@ -134,7 +147,7 @@ export function EventDetails({ id }: { id: string }) {
                 <span>
                   <span className="block text-[0.65rem] text-muted-foreground">Team so far</span>
                   <span className="block text-sm font-medium text-foreground">
-                    {event.volunteers + (joined ? 1 : 0)} volunteers
+                    {event.volunteers} volunteers
                   </span>
                 </span>
               </div>
