@@ -1,5 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowRight02Icon,
   Calendar03Icon,
@@ -7,16 +5,24 @@ import {
   Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
+import Link from "next/link";
 
-import { formatEventDate, formatEventTime, type EventItem } from "@/lib/events";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { formatEventDate, formatEventTime, type EventItem } from "@/lib/events";
 
-export function EventCard({ event }: { event: EventItem }) {
+export function EventCard({
+  event,
+  archived = false,
+}: {
+  event: EventItem;
+  archived?: boolean;
+}) {
   return (
     <Card className="flex h-full flex-col overflow-hidden rounded-2xl border-border/70 bg-card/70 p-0">
-      <div className="relative aspect-[16/10] overflow-hidden">
+      <div className="relative aspect-16/10 overflow-hidden">
         <Image
           src={event.thumbnail}
           alt={event.title}
@@ -24,10 +30,18 @@ export function EventCard({ event }: { event: EventItem }) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover transition-transform duration-300 hover:scale-105"
         />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
           <Badge className="rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm">
             {event.type}
           </Badge>
+          {archived ? (
+            <Badge
+              variant="secondary"
+              className="rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm"
+            >
+              Archived
+            </Badge>
+          ) : null}
         </div>
       </div>
 
@@ -57,9 +71,9 @@ export function EventCard({ event }: { event: EventItem }) {
         <Button
           variant="outline"
           render={<Link href={`/events/${event.id}`} />}
-          className="mt-auto h-9 w-full gap-1.5 rounded-lg text-xs"
+          className="mt-3 h-9 w-full gap-1.5 rounded-lg text-xs"
         >
-          View event
+          {archived ? "View recap" : "View event"}
           <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-3.5" />
         </Button>
       </div>

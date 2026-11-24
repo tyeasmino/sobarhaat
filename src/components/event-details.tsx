@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight02Icon,
   Calendar03Icon,
   CheckmarkCircle01Icon,
   GroupIcon,
@@ -20,6 +21,7 @@ import { useToast } from "@/components/toast-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToday } from "@/lib/clock";
 import { formatEventDate, formatEventTime } from "@/lib/events";
 import { joinEvent, useEvent, useJoinedEvents } from "@/lib/events-api";
 
@@ -29,8 +31,15 @@ export function EventDetails({ id }: { id: string }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const today = useToday();
 
   const joined = joinedEvents.some((item) => item.id === id);
+  const isPast = Boolean(event && event.date < today);
+  const isOwner = Boolean(
+    user?.email &&
+      event?.creatorEmail &&
+      user.email.toLowerCase() === event.creatorEmail.toLowerCase()
+  );
 
   if (isLoading) {
     return (
@@ -108,6 +117,11 @@ export function EventDetails({ id }: { id: string }) {
           <div className="flex flex-col">
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="rounded-full">{event.type}</Badge>
+              {isPast ? (
+                <Badge variant="secondary" className="rounded-full">
+                  Archived
+                </Badge>
+              ) : null}
               <Badge variant="outline" className="rounded-full gap-1.5">
                 <HugeiconsIcon icon={Shield01Icon} strokeWidth={1.6} className="size-3" />
                 Verified organiser
@@ -158,23 +172,65 @@ export function EventDetails({ id }: { id: string }) {
                 <HugeiconsIcon icon={HeartIcon} strokeWidth={1.7} className="size-4 text-coral" />
                 Organised by {event.creatorEmail ?? "a community volunteer"}
               </p>
-              <Button
-                onClick={handleJoin}
-                disabled={joined}
-                className="mt-4 h-11 w-full gap-2 rounded-full text-sm"
-              >
-                {joined ? (
-                  <>
-                    <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-4" />
-                    Joined — see you there
-                  </>
-                ) : (
-                  <>
-                    <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.8} className="size-4" />
-                    Join this event
-                  </>
-                )}
-              </Button>
+              {isPast ? (
+                <>
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    This drive has ended. The details above stay here as a recap of
+                    the work done.
+                  </p>
+                  <Button
+                    variant="outline"
+                    render={<Link href="/archived-events" />}
+                    className="mt-4 h-11 w-full gap-2 rounded-full text-sm"
+                  >
+                    Browse past events
+                    <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-4" />
+                  </Button>
+                </>
+              ) : isOwner ? (
+                <>
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    You created this drive, so you are organising it. You can still
+                    join as a volunteer if you plan to take part — it is optional.
+                  </p>
+                  <Button
+                    onClick={handleJoin}
+                    disabled={joined}
+                    variant={joined ? "outline" : "default"}
+                    className="mt-4 h-11 w-full gap-2 rounded-full text-sm"
+                  >
+                    {joined ? (
+                      <>
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-4" />
+                        Joined as a volunteer
+                      </>
+                    ) : (
+                      <>
+                        <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.8} className="size-4" />
+                        Join as a volunteer too
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={handleJoin}
+                  disabled={joined}
+                  className="mt-4 h-11 w-full gap-2 rounded-full text-sm"
+                >
+                  {joined ? (
+                    <>
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={1.8} className="size-4" />
+                      Joined — see you there
+                    </>
+                  ) : (
+                    <>
+                      <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.8} className="size-4" />
+                      Join this event
+                    </>
+                  )}
+                </Button>
+              )}
             </Card>
           </div>
         </div>

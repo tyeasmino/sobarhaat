@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { ArchivedEvents } from "@/components/archived-events";
 import { EventsSkeleton } from "@/components/events-skeleton";
 import { FeaturesSection } from "@/components/features-section";
 import { GallerySection } from "@/components/gallery-section";
@@ -16,6 +17,9 @@ export default function Home() {
       <HowItWorksSection />
       <Suspense fallback={<EventsSkeleton />}>
         <RecentEvents />
+      </Suspense>
+      <Suspense fallback={<EventsSkeleton />}>
+        <ArchivedEvents />
       </Suspense>
       <GallerySection />
       <NewsletterSection />

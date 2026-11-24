@@ -17,6 +17,7 @@ const columns = [
     links: [
       { label: "About Sobar Haat", href: "/about" },
       { label: "Upcoming events", href: "/events" },
+      { label: "Archived events", href: "/archived-events" },
       { label: "How it works", href: "/#how-it-works" },
       { label: "Our impact", href: "/impact" },
     ],

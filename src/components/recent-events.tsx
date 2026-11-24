@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowRight02Icon,
   Calendar03Icon,
@@ -10,12 +7,15 @@ import {
   Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
+import Link from "next/link";
+import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatEventDate, formatEventTime, upcomingOnly } from "@/lib/events";
 import { useToday } from "@/lib/clock";
+import { formatEventDate, formatEventTime, upcomingOnly } from "@/lib/events";
 import { useRecentEvents } from "@/lib/events-api";
 
 export function RecentEvents() {
@@ -103,7 +103,7 @@ export function RecentEvents() {
                 <Button
                   variant="outline"
                   render={<Link href={`/events/${event.id}`} />}
-                  className="mt-auto h-9 w-full gap-1.5 rounded-lg text-xs"
+                  className="mt-3 h-9 w-full gap-1.5 rounded-lg text-xs"
                 >
                   View event
                   <HugeiconsIcon icon={ArrowRight02Icon} strokeWidth={1.8} className="size-3.5" />

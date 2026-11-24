@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { getAuthToken } from "@/lib/auth-client";
 import type { EventItem } from "@/lib/events";
 
 /**
@@ -48,6 +49,30 @@ function notify() {
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
+/** Read a fresh JWT for private API calls; re-read it for every mutation. */
+function useAuthToken() {
+  const [state, setState] = React.useState<{
+    token?: string;
+    isLoading: boolean;
+  }>({ isLoading: true });
+
+  React.useEffect(() => {
+    let active = true;
+    getAuthToken()
+      .then((token) => {
+        if (active) setState({ token, isLoading: false });
+      })
+      .catch(() => {
+        if (active) setState({ isLoading: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return state;
+}
+
 function useApiResource<T>(
   path: string | null,
   waiting = false,
@@ -65,7 +90,8 @@ function useApiResource<T>(
   }, []);
 
   React.useEffect(() => {
-    if (!path) return;
+    // Do not fire an unauthenticated request while the JWT is being prepared.
+    if (!path || waiting) return;
 
     const controller = new AbortController();
     let active = true;
@@ -100,7 +126,7 @@ function useApiResource<T>(
       active = false;
       controller.abort();
     };
-  }, [path, revision, token]);
+  }, [path, revision, token, waiting]);
 
   const reload = React.useCallback(() => setRevision((value) => value + 1), []);
 
@@ -110,11 +136,8 @@ function useApiResource<T>(
   return { data, isLoading, error: shownError, reload };
 }
 
-async function request<T>(
-  path: string,
-  init?: RequestInit,
-  token?: string
-): Promise<T> {
+/** Thin wrapper — headers are built explicitly by each calling method. */
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const base = process.env.NEXT_PUBLIC_API_URL;
   if (!base) throw new Error(CONFIG_ERROR);
 
@@ -123,11 +146,6 @@ async function request<T>(
     response = await fetch(`${base}${path}`, {
       ...init,
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...((init?.headers as Record<string, string> | undefined) ?? {}),
-      },
     });
   } catch {
     throw new Error("Cannot reach the event service. Is the Express server running?");
@@ -161,6 +179,19 @@ export function useRecentEvents() {
   return { events, ...rest };
 }
 
+/** Public archive of past drives. `limit` is capped by the Express route. */
+export function useArchivedEvents(limit?: number) {
+  const path = eventsUrl(
+    limit ? `/events/archived?limit=${limit}` : "/events/archived"
+  );
+  const { data, ...rest } = useApiResource<ApiEvent[]>(path);
+  const events = React.useMemo(
+    () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
+    [data]
+  );
+  return { events, ...rest };
+}
+
 export function useEvent(id?: string) {
   const { data, ...rest } = useApiResource<ApiEvent>(
     id ? eventsUrl(`/events/${encodeURIComponent(id)}`) : null
@@ -172,10 +203,13 @@ export function useEvent(id?: string) {
   return { event, ...rest };
 }
 
-export function useMyEvents(email?: string, token?: string) {
+export function useMyEvents(email?: string) {
+  const { token, isLoading: tokenLoading } = useAuthToken();
+  // The Express route resolves the owner from the Bearer JWT, so the email is
+  // no longer part of the URL.
   const { data, ...rest } = useApiResource<ApiEvent[]>(
-    email ? eventsUrl(`/manage-events/${encodeURIComponent(email)}`) : null,
-    !email,
+    email ? eventsUrl("/manage-events") : null,
+    !email || tokenLoading,
     token
   );
   const events = React.useMemo(
@@ -186,8 +220,11 @@ export function useMyEvents(email?: string, token?: string) {
 }
 
 export function useJoinedEvents() {
+  const { token, isLoading: tokenLoading } = useAuthToken();
   const { data, ...rest } = useApiResource<ApiEvent[]>(
-    eventsUrl("/joined-events")
+    eventsUrl("/joined-events"),
+    tokenLoading,
+    token
   );
   const events = React.useMemo(
     () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
@@ -197,9 +234,19 @@ export function useJoinedEvents() {
 }
 
 export async function createEvent(input: EventItem) {
+  const token = await getAuthToken();
+  if (!token) throw new Error("Please sign in to create an event.");
+
   const result = await request<{ insertedId?: string; event?: ApiEvent }>(
     "/events",
-    { method: "POST", body: JSON.stringify(input) }
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    }
   );
   notify();
   return result.event
@@ -208,29 +255,53 @@ export async function createEvent(input: EventItem) {
 }
 
 export async function updateEvent(input: EventItem) {
+  const token = await getAuthToken();
+  if (!token) throw new Error("Please sign in to edit an event.");
+
   const result = await request<{ event?: ApiEvent }>(
     `/manage-events/${encodeURIComponent(input.id)}`,
-    { method: "PUT", body: JSON.stringify(input) }
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    }
   );
   notify();
   return result.event ? normalizeEvent(result.event) : input;
 }
 
-export async function deleteEvent(id: string, token?: string) {
-  await request(
-    `/manage-events/${encodeURIComponent(id)}`,
-    { method: "DELETE" },
-    token
-  );
+export async function deleteEvent(id: string) {
+  const token = await getAuthToken();
+  if (!token) throw new Error("Please sign in to delete an event.");
+
+  await request(`/manage-events/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
   notify();
 }
 
 export async function joinEvent(id: string) {
+  const token = await getAuthToken();
+  if (!token) throw new Error("Please sign in to join an event.");
+
   const result = await request<{
     joined: boolean;
     alreadyJoined: boolean;
     volunteers: number;
-  }>(`/events/${encodeURIComponent(id)}/join`, { method: "POST" });
+  }>(`/events/${encodeURIComponent(id)}/join`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
   notify();
   return result;
 }

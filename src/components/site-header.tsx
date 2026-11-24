@@ -46,6 +46,7 @@ import {
 
 const navItems = [
   { label: "Upcoming Events", href: "/events" },
+  { label: "Archived Events", href: "/archived-events" },
   { label: "How it works", href: "/#how-it-works" },
   { label: "Our impact", href: "/impact" },
   { label: "About", href: "/about" },

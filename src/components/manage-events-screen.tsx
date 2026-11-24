@@ -37,7 +37,7 @@ import { deleteEvent, useMyEvents } from "@/lib/events-api";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
-function EventRow({ event, token }: { event: EventItem; token?: string }) {
+function EventRow({ event }: { event: EventItem }) {
   const [open, setOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { user } = useAuth();
@@ -64,7 +64,7 @@ function EventRow({ event, token }: { event: EventItem; token?: string }) {
 
     setIsDeleting(true);
     try {
-      await deleteEvent(event.id, token);
+      await deleteEvent(event.id);
       setOpen(false);
       toast({ variant: "success", title: "Event deleted" });
     } catch (cause) {
@@ -209,16 +209,17 @@ function EventRow({ event, token }: { event: EventItem; token?: string }) {
   );
 }
 
-export function ManageEventsScreen({ token }: { token?: string }) {
+export function ManageEventsScreen() {
   const { user } = useAuth();
-  // JWT from the server component (`auth.api.getToken`) is sent as
-  // Authorization: Bearer <jwt>; the Express API verifies it against JWKS.
+  // A fresh BetterAuth JWT is fetched in the client and sent as
+  // Authorization: Bearer <jwt>; Express verifies it against JWKS and resolves
+  // the owner from the token itself.
   const {
     events: mine,
     isLoading,
     error,
     reload,
-  } = useMyEvents(user?.email, token);
+  } = useMyEvents(user?.email);
 
   return (
     <section className="py-12 sm:py-16">
@@ -269,7 +270,7 @@ export function ManageEventsScreen({ token }: { token?: string }) {
           ) : mine.length ? (
             [...mine]
               .sort((a, b) => b.date.localeCompare(a.date))
-              .map((event) => <EventRow key={event.id} event={event} token={token} />)
+              .map((event) => <EventRow key={event.id} event={event} />)
           ) : (
             <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
               <p className="font-heading text-base font-semibold text-foreground">
