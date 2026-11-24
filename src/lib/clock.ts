@@ -54,7 +54,17 @@ function useClock<T>(select: (now: number) => T, serverValue: T): T {
   return value;
 }
 
-const toToday = (now: number) => new Date(now).toISOString().slice(0, 10);
+// `toISOString()` returns the UTC date. At 03:00 in Bangladesh (UTC+6) it is
+// still the previous day in UTC, which wrongly allows yesterday to be picked.
+// Sobar Haat uses Asia/Dhaka dates everywhere, so derive the date explicitly.
+const dhakaDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Dhaka",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const toToday = (now: number) => dhakaDate.format(new Date(now));
 const toTimestamp = (now: number) => now;
 
 export function useToday() {
