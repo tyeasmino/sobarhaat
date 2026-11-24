@@ -83,7 +83,7 @@ export function HeroSection() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button
-              render={<Link href="#events" />}
+              render={<Link href="/events" />}
               className="h-11 gap-2 rounded-full px-5 text-sm shadow-lg shadow-primary/20"
             >
               Explore upcoming events
@@ -175,7 +175,7 @@ export function HeroSection() {
                 </div>
 
                 <Button
-                  render={<Link href="#events" />}
+                  render={<Link href="/events" />}
                   className="mt-3 h-9 w-full gap-1.5 rounded-lg text-xs"
                 >
                   View event details

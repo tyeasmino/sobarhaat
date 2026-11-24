@@ -158,7 +158,7 @@ export function SiteHeader() {
 
           <Button
             size="sm"
-            render={<Link href="#events" />}
+            render={<Link href="/events" />}
             className="hidden h-9 gap-1.5 rounded-full px-4 text-xs shadow-md shadow-primary/20 sm:inline-flex"
           >
             <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.8} />
@@ -248,7 +248,7 @@ export function SiteHeader() {
                     Log in
                   </Button>
                 ) : null}
-                <Button render={<Link href="#events" />} className="h-10 gap-2 rounded-full">
+                <Button render={<Link href="/events" />} className="h-10 gap-2 rounded-full">
                   <HugeiconsIcon icon={HandHeartIcon} strokeWidth={1.8} />
                   Explore events
                 </Button>
