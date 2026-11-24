@@ -47,7 +47,7 @@ export function JoinedEventsScreen() {
             </Button>
           </div>
         ) : (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {joined.length ? (
               joined.map((event) => (
                 <Card
@@ -59,7 +59,7 @@ export function JoinedEventsScreen() {
                       src={event.thumbnail}
                       alt=""
                       fill
-                      sizes="(max-width: 640px) 100vw, 50vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover"
                     />
                     <div className="absolute top-3 left-3 flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[0.62rem] font-medium text-primary backdrop-blur-sm">
@@ -93,7 +93,7 @@ export function JoinedEventsScreen() {
                 </Card>
               ))
             ) : (
-              <div className="sm:col-span-2 rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center">
+              <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 p-12 text-center sm:col-span-2 lg:col-span-3">
                 <p className="font-heading text-base font-semibold text-foreground">
                   No joined events yet
                 </p>
