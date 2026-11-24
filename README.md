@@ -4,129 +4,160 @@
 
 **Live site:** https://sobar-haat.vercel.app _(replace with the final Vercel URL after deployment)_
 
-## Project ta ki?
+## Overview
 
-Sobar Haat ekta **Social Development Events Platform** — manush nijer elake social
-service drive khuje, join kore, ar track korte pare. Example: Mirpur 10-e winter
-clothes distribution, Mohammadpur-e blanket distribution, community food drive,
-flood relief, blood donation camp, tree plantation.
+Sobar Haat is a **Social Development Events Platform** that enables community
+members to discover, create, join and track local service drives. Examples
+include winter clothes distribution in Mirpur 10, blanket distribution in
+Mohammadpur, community food drives, flood relief programmes, blood donation
+camps and tree plantation drives.
 
-Goal: jekono manush (login charao) dekhte pare ki ki drive cholchhe, kothay cholchhe,
-kar organization-e, ar kobe. Logged-in user nijeo drive create korte, join korte ar
-nijer event manage korte pare. Age-r drive-gulo archive-e thake — pokhktok injo
-last month-er blood donation camp kemon silo, kothay silo, kitai kora hoyechilo
-tai dekha jay.
+The platform serves two audiences. Unauthenticated visitors can browse upcoming
+events and read full event details without creating an account. Registered users
+can organise their own drives, volunteer for events created by others, review
+the events they have joined and manage only the events they created. Completed
+drives remain publicly accessible in an archive, so the community can review
+past activities — for example, where the previous monthly blood donation camp
+was held and what work was carried out.
 
-## Project-e ki ki kora jay?
+## What You Can Do
 
-**Jekono visitor (login charao):**
-- Home-e banner, features, how-it-works, 6 ta recent upcoming event, 6 ta past event recap, gallery ar newsletter dekha jay.
-- `/events` page-e shob upcoming event grid-e dekha, search ar cause filter diye khuja jay.
-- Event card-e click kore details page-e date, time, location, description, organizer ar volunteers count dekha jay.
-- `/archived-events` page-e shob age-r drive dekha jay.
-- Light/dark theme toggle kora jay.
+### As a visitor
 
-**Account thakle:**
-- Email/password ba Google diye login/register (name, photo URL, validated password).
-- Naya event create kora — title, type (Cleanup/Plantation/Donation/Winter Support/Food Support/Flood Relief/Health), location, future date, time, thumbnail URL ar description.
-- Konok event-e Join kora jay (per user ekbar) ar `/joined-events`-e nijer join-gulo event date-anusare dekha jay.
-- Shudhu nije create kora event edit/delete kora jay `/manage-events` theke.
-- Profile dropdown theke Create / Manage / Joined event-e jawa ar logout kora jay.
-- Private page reload korleo login-e redirect hoy na.
+- Browse the home page banner, platform features, step-by-step guide, six recent
+  upcoming events, six archived recaps, a community gallery and a newsletter
+  section.
+- Browse all upcoming events in a responsive grid, with keyword search and
+  filters by cause.
+- Open any event details page to review the date, time, location, description,
+  organiser, real volunteer count and joining instructions.
+- Browse the complete public archive of past events, sorted from newest to
+  oldest and searchable by title, cause or location.
+- Switch between light and dark themes; the selected theme is preserved across
+  reloads.
 
-## Features
+### As a registered user
 
-- **Database-driven** — event data MongoDB-thake ashe; home-er 6 ta card `GET /events/recent?limit=6` (MongoDB `.limit()`) theke load hoy.
-- **Public archive** — past event-gulo server-e date diye filter kore `/events/archived`-e dey; details page-e join-er bodole recap notice dekha jay.
-- **Real volunteer count** — `joins` collection-e count kore; fake/seed number kakhono dekha jay na, naya event 0 theke shuru.
-- **Owner-only manage** — event-e `creatorEmail` store hoy, edit/delete-e abar check hoy.
-- **JWT protected** — create/edit/delete/join — sob mutation-e fresh `Authorization: Bearer <token>` pathano hoy; Express API remote JWKS diye verify kore.
-- **Validation + toast** — password-e uppercase, lowercase ar min 6 char; event form-e sob field validation ar past date block. Kono `alert()` nei, shob message toast.
-- **Theme + responsive** — semantic CSS token diye poora system light/dark hoy, saved theme first paint-er age apply hoy. Mobile/tablet/desktop-e equal-height card grid.
+- Register with a name, email address, optional photo URL and a validated
+  password, or sign in with Google.
+- Create an event with a title, type, location, future date, start time,
+  thumbnail URL and description.
+- Join an upcoming event; each user can join a given event once, and joined
+  events are listed in chronological order by event date.
+- Edit or delete only the events created by that account.
+- Access private pages from the profile dropdown and sign out securely.
+- Reload private routes without being redirected to the login page.
 
-## Next.js tech ar kothay use hoyeche
+## Key Features
 
-| Next.js / related tech | Project-e use |
-| --- | --- |
-| **Next.js 16.4.6 App Router** | File-system routing under `src/app/` — `page.tsx`, `layout.tsx`, dynamic `/events/[id]`, `/manage-events/[id]/edit`, catch-all API route `/api/auth/[...all]` |
-| **Server Components (default)** | `layout.tsx`, home/about/impact/archived page-gulo server-e render hoy; interactivity lagle-i `"use client"` |
-| **Client Components** | `site-header`, `auth-form`, `event-form`, `event-details`, theme toggle, toast provider, auth provider — sob interactivity ar hooks |
-| **Cache Components** | `next.config.ts`-e enabled; dynamic fetch thake `<Suspense>`-er bhitor (home-e `RecentEvents` + `ArchivedEvents`, fallback `EventsSkeleton`) |
-| **Partial Prefetching** | Link prefetch ar streaming er jonno enabled |
-| **React Compiler** | `babel-plugin-react-compiler` config-e on — manual `useMemo`/`useCallback` barai lagbe na |
-| **Turbopack** | `next dev` / `next build`; `*.css` er jonno custom `@tailwindcss/turbopack` loader |
-| **Route Handlers** | `src/app/api/auth/[...all]/route.ts` BetterAuth (login, register, Google, `/api/auth/token`, `/api/auth/jwks`) handle kore |
-| **Proxy (Next 16 middleware)** | `src/proxy.ts` — private route-e cookie/session check kore anonymous user-ke `/login`-e pathay, logged-in user-ke auth page-e jete dey na |
-| **Metadata API** | `layout.tsx`-e default title/description, archive page-e alada metadata |
-| **`next/link`** | Navbar, footer, card button — client-side navigation + prefetch |
-| **`next/image`** | Event thumbnail, gallery, hero — optimized/responsive image |
-| **`next/navigation`** | `useRouter` diye login/create/edit-er por redirect |
-| **`next/font/google`** | `Inter` + `Geist Mono` layout-e load, CSS variable (`--font-sans`, `--font-mono`) |
-| **Tailwind CSS v4 (CSS-first)** | `src/app/globals.css`-e semantic tokens + `.dark` variant; kono `tailwind.config.*` nei |
-| **shadcn UI v4 + Base UI** | `src/components/ui/` generated components (Radix na) — Button, Card, Dialog, Select, Calendar, Avatar, Sheet, Toast etc. |
-| **Hugeicons** | `ArrowRight02Icon`, `HandHeartIcon` etc. poora UI-te icon |
-| **TypeScript + `@/*` alias** | `src/*` path alias, build-e type-check hoy |
+- **Database-driven listings** — the home page retrieves its six upcoming cards
+  from `GET /events/recent?limit=6`, which uses MongoDB's `.limit(6)` operator.
+  No sample data is displayed once the API is configured.
+- **Public event archive** — completed drives are filtered by date on the
+  server and returned by `GET /events/archived`. Event details pages replace the
+  join action with a recap notice once an event has passed.
+- **Accurate volunteer counts** — counts are computed from the `joins`
+  collection on every read. Seeded values are ignored and new events start at
+  zero.
+- **Owner-only event management** — the creator's email address is stored on
+  each event and verified again before edits or deletions are permitted.
+- **JWT-protected mutations** — create, update, delete and join requests send a
+  fresh `Authorization: Bearer <token>` obtained from `/api/auth/token`. The
+  Express API validates it against BetterAuth's remote JWKS endpoint.
+- **Validation and user feedback** — passwords require an uppercase letter, a
+  lowercase letter and at least six characters. Event forms validate all fields
+  and reject past dates. All feedback is delivered through toasts instead of
+  browser alerts.
+- **Theming and responsiveness** — semantic CSS tokens restyle the entire
+  interface from a single toggle, with the saved theme applied before the first
+  paint. Card grids maintain equal dimensions on mobile, tablet and desktop.
 
-## Pages and routes
+## Pages and Routes
 
 | Route | Access | Purpose |
 | --- | --- | --- |
-| `/` | Public | Banner, features, how-it-works, 6 recent upcoming + 6 archived, gallery, newsletter |
-| `/events` | Public | Shob upcoming event, search + cause filter |
-| `/events/[id]` | Public | Details, organizer, real count, Join button (login charole details dekha jay) |
-| `/archived-events` | Public | Shob past event, newest first, searchable |
-| `/login`, `/register` | Public | Email/password + Google, photo URL, validated password |
-| `/create-event` | Private | Naya drive create |
-| `/manage-events`, `/manage-events/[id]/edit` | Private | Nijer event edit/delete |
-| `/joined-events` | Private | Join kora event, event date-anusare sorted |
-| `/about`, `/impact` | Public | Amader story ar impact |
+| `/` | Public | Banner, features, how-it-works, six recent upcoming events, six archived recaps, gallery and newsletter |
+| `/events` | Public | All upcoming events with search and cause filters |
+| `/events/[id]` | Public | Full event details, organiser, real volunteer count and join action |
+| `/archived-events` | Public | All past events, newest first, with search |
+| `/login`, `/register` | Public | Email/password and Google authentication; photo URL and password validation on registration |
+| `/create-event` | Private | Create a new service drive |
+| `/manage-events`, `/manage-events/[id]/edit` | Private | Edit or delete events owned by the signed-in user |
+| `/joined-events` | Private | Events joined by the signed-in user, sorted by event date |
+| `/about`, `/impact` | Public | Project story and community impact |
 
-Private routes dui layer-e guarded: proxy + client-side `ProtectedRoute`. Tai
-reload korle logged-in user login-e redirect hoy na.
+Private routes are protected at two levels: the Next.js proxy redirects
+anonymous visitors, while the client-side `ProtectedRoute` keeps authenticated
+users on the page after a hard reload.
 
-## Shuru kora
+## Next.js Implementation Details
+
+| Technology | Usage in this project |
+| --- | --- |
+| Next.js 16.4.6 App Router | File-system routes in `src/app/`, including dynamic segments `/events/[id]` and `/manage-events/[id]/edit`, plus the catch-all API route `/api/auth/[...all]` |
+| Server Components | `layout.tsx` and the home, about, impact and archive pages render on the server by default |
+| Client Components | The header, authentication form, event form, event details, theme toggle, toast provider and auth provider are marked `"use client"` |
+| Cache Components | Enabled in `next.config.ts`; dynamic data reads are wrapped in `<Suspense>` with `EventsSkeleton` as the fallback |
+| Partial Prefetching | Enabled for faster client-side navigation between routes |
+| React Compiler | Enabled through `babel-plugin-react-compiler`, reducing the need for manual memoisation |
+| Turbopack | Used by `next dev` and `next build`, with a custom `@tailwindcss/turbopack` CSS loader |
+| Route Handlers | `src/app/api/auth/[...all]/route.ts` exposes BetterAuth endpoints for login, registration, Google sign-in, token issuance and JWKS |
+| Proxy (Next.js 16 middleware) | `src/proxy.ts` validates the session cookie on private routes and redirects unauthenticated users |
+| Metadata API | Global title and description in `layout.tsx`, with route-specific metadata on the archive page |
+| `next/link` | Navigation in the header, footer and event cards with client-side prefetching |
+| `next/image` | Optimised, responsive rendering of event thumbnails, gallery images and the hero illustration |
+| `next/navigation` | `useRouter` handles redirects after authentication and event creation or editing |
+| `next/font/google` | Inter and Geist Mono are loaded in `layout.tsx` and exposed as CSS variables |
+| Tailwind CSS v4 | CSS-first configuration in `src/app/globals.css`, using semantic tokens and a `.dark` variant; no `tailwind.config.*` |
+| shadcn UI v4 with Base UI | Generated primitives in `src/components/ui/` for buttons, cards, dialogs, selects, calendars, avatars and sheets |
+| Hugeicons | Icon set used throughout the interface |
+| TypeScript | Strict typing with the `@/*` path alias mapped to `src/*`; `npm run build` performs type checking |
+
+## Getting Started
 
 ```bash
 npm install
-cp .env.example .env.local   # nijer value boshao
+cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Event data-er jonno Express API (`http://localhost:8000`)
-cholate hobey.
+Open http://localhost:3000. The Express API must be running at
+http://localhost:8000 for event data to load.
 
-### Environment
+### Environment Variables
 
-| Variable | Kothay use hoy |
+| Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Browser → Express base URL (build-e bake hoy) |
-| `BETTER_AUTH_URL` | App-er origin; JWT issuer/audience ar `/api/auth/jwks` |
+| `NEXT_PUBLIC_API_URL` | Browser-to-Express base URL; embedded at build time |
+| `BETTER_AUTH_URL` | Application origin; JWT issuer, audience and `/api/auth/jwks` base URL |
 | `BETTER_AUTH_SECRET` | BetterAuth signing secret |
-| `MONGODB_URI` | API-er sathe same Atlas cluster |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in |
+| `MONGODB_URI` | MongoDB Atlas connection string shared with the API |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth credentials |
 
-`.env*` gitignore korche. Template: `.env.example`.
+Environment files are gitignored. See `.env.example` for a template.
 
 ### Scripts
 
-| Command | Kaj |
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` | Dev server |
-| `npm run build` | Production build + type-check |
-| `npm run start` | Production serve |
-| `npm run lint` | ESLint |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build and type-check the project |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Run ESLint |
 
-Verify: `npm run lint` then `npm run build`.
+Verify changes with `npm run lint` followed by `npm run build`.
 
 ## Deployment
 
-1. Vercel-e deploy koro; uporer env-gulo set koro — `NEXT_PUBLIC_API_URL` Render
-   service URL, `BETTER_AUTH_URL` Vercel origin.
-2. Google OAuth redirect URL-e Vercel origin add koro.
-3. API-te same `BETTER_AUTH_URL` ar matching `CORS_ORIGINS` set koro
-   ([server README](../sobarhat-server/README.md)).
-4. App Router direct route reload handle kore — kono route-e 404 ashe na.
+1. Deploy the application to Vercel and set all environment variables above.
+   `NEXT_PUBLIC_API_URL` must point to the deployed Render service, and
+   `BETTER_AUTH_URL` must match the Vercel origin.
+2. Add the Vercel origin to the Google OAuth redirect URLs.
+3. Configure the API with the same `BETTER_AUTH_URL` and matching
+   `CORS_ORIGINS`, as described in the [server README](../sobarhat-server/README.md).
+4. App Router serves direct route requests, so reloading any route does not
+   produce a 404 error.
 
 ## Related
 
-- [Express + MongoDB API README](../sobarhat-server/README.md)
+- [Express and MongoDB API README](../sobarhat-server/README.md)
