@@ -3,7 +3,12 @@ import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 
-const client = new MongoClient(process.env.MONGODB_URI as string);
+// Next.js evaluates this module while collecting route configuration during
+// `next build`. A missing URI must not crash the build — the real value is
+// injected at runtime, so use an inert local fallback only when it is absent.
+const mongoUri =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/sobarhaat";
+const client = new MongoClient(mongoUri);
 const db = client.db("sobarhaat");
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
