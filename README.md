@@ -123,7 +123,7 @@ npm run dev
 ```
 
 Open http://localhost:3000. The Express API must be running at
-http://localhost:8000 for event data to load.
+https://sobarhaat-server.vercel.app for event data to load.
 
 ### Environment Variables
 

@@ -12,7 +12,7 @@ import type { EventItem } from "@/lib/events";
 
 const CHANGE_EVENT = "sobar-haat:events-changed";
 const CONFIG_ERROR =
-  "Add NEXT_PUBLIC_API_URL=http://localhost:8000 to .env and restart the dev server.";
+  "Add NEXT_PUBLIC_API_URL=https://sobarhaat-server.vercel.app to .env and restart the dev server.";
 
 type ApiEvent = Partial<EventItem> & { _id?: string };
 
@@ -76,7 +76,7 @@ function useAuthToken() {
 function useApiResource<T>(
   path: string | null,
   waiting = false,
-  token?: string
+  token?: string,
 ): Resource<T> {
   const [data, setData] = React.useState<T | null>(null);
   const [error, setError] = React.useState("");
@@ -116,7 +116,9 @@ function useApiResource<T>(
       })
       .catch((cause: unknown) => {
         if (!active || controller.signal.aborted) return;
-        setError(cause instanceof Error ? cause.message : "Could not load data.");
+        setError(
+          cause instanceof Error ? cause.message : "Could not load data.",
+        );
       })
       .finally(() => {
         if (active) setLoadedPath(path);
@@ -148,7 +150,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       credentials: "include",
     });
   } catch {
-    throw new Error("Cannot reach the event service. Is the Express server running?");
+    throw new Error(
+      "Cannot reach the event service. Is the Express server running?",
+    );
   }
 
   const payload = await response.json().catch(() => null);
@@ -163,18 +167,18 @@ export function useEvents() {
   const { data, ...rest } = useApiResource<ApiEvent[]>(eventsUrl("/events"));
   const events = React.useMemo(
     () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
-    [data]
+    [data],
   );
   return { events, ...rest };
 }
 
 export function useRecentEvents() {
   const { data, ...rest } = useApiResource<ApiEvent[]>(
-    eventsUrl("/events/recent?limit=6")
+    eventsUrl("/events/recent?limit=6"),
   );
   const events = React.useMemo(
     () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
-    [data]
+    [data],
   );
   return { events, ...rest };
 }
@@ -182,23 +186,23 @@ export function useRecentEvents() {
 /** Public archive of past drives. `limit` is capped by the Express route. */
 export function useArchivedEvents(limit?: number) {
   const path = eventsUrl(
-    limit ? `/events/archived?limit=${limit}` : "/events/archived"
+    limit ? `/events/archived?limit=${limit}` : "/events/archived",
   );
   const { data, ...rest } = useApiResource<ApiEvent[]>(path);
   const events = React.useMemo(
     () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
-    [data]
+    [data],
   );
   return { events, ...rest };
 }
 
 export function useEvent(id?: string) {
   const { data, ...rest } = useApiResource<ApiEvent>(
-    id ? eventsUrl(`/events/${encodeURIComponent(id)}`) : null
+    id ? eventsUrl(`/events/${encodeURIComponent(id)}`) : null,
   );
   const event = React.useMemo(
     () => (data ? normalizeEvent(data) : null),
-    [data]
+    [data],
   );
   return { event, ...rest };
 }
@@ -210,11 +214,11 @@ export function useMyEvents(email?: string) {
   const { data, ...rest } = useApiResource<ApiEvent[]>(
     email ? eventsUrl("/manage-events") : null,
     !email || tokenLoading,
-    token
+    token,
   );
   const events = React.useMemo(
     () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
-    [data]
+    [data],
   );
   return { events, ...rest };
 }
@@ -224,11 +228,11 @@ export function useJoinedEvents() {
   const { data, ...rest } = useApiResource<ApiEvent[]>(
     eventsUrl("/joined-events"),
     tokenLoading,
-    token
+    token,
   );
   const events = React.useMemo(
     () => (Array.isArray(data) ? data.map(normalizeEvent) : []),
-    [data]
+    [data],
   );
   return { events, ...rest };
 }
@@ -246,7 +250,7 @@ export async function createEvent(input: EventItem) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(input),
-    }
+    },
   );
   notify();
   return result.event
@@ -267,7 +271,7 @@ export async function updateEvent(input: EventItem) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(input),
-    }
+    },
   );
   notify();
   return result.event ? normalizeEvent(result.event) : input;
