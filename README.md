@@ -95,6 +95,7 @@ users on the page after a hard reload.
 | Technology | Usage in this project |
 | --- | --- |
 | Next.js 16.4.6 App Router | File-system routes in `src/app/`, including dynamic segments `/events/[id]` and `/manage-events/[id]/edit`, plus the catch-all API route `/api/auth/[...all]` |
+| `vercel.json` | Declares the Next.js preset, clean URLs and security headers; route reloads are handled by App Router itself |
 | Server Components | `layout.tsx` and the home, about, impact and archive pages render on the server by default |
 | Client Components | The header, authentication form, event form, event details, theme toggle, toast provider and auth provider are marked `"use client"` |
 | Cache Components | Enabled in `next.config.ts`; dynamic data reads are wrapped in `<Suspense>` with `EventsSkeleton` as the fallback |
@@ -149,9 +150,11 @@ Verify changes with `npm run lint` followed by `npm run build`.
 
 ## Deployment
 
-1. Deploy the application to Vercel and set all environment variables above.
-   `NEXT_PUBLIC_API_URL` must point to the deployed Render service, and
-   `BETTER_AUTH_URL` must match the Vercel origin.
+1. Deploy the application to Vercel. The included `vercel.json` sets the
+   Next.js framework preset, clean URLs and security headers. Set all
+   environment variables above: `NEXT_PUBLIC_API_URL` must point to the
+   separately deployed Vercel API project, and `BETTER_AUTH_URL` must match this
+   client's Vercel origin.
 2. Add the Vercel origin to the Google OAuth redirect URLs.
 3. Configure the API with the same `BETTER_AUTH_URL` and matching
    `CORS_ORIGINS`, as described in the [server README](../sobarhat-server/README.md).
