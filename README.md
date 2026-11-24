@@ -43,4 +43,33 @@ Open http://localhost:3000.
 
 ## Environment
 
-Create a `.env.local` file with the API base URL and authentication secrets once the server is connected. All `.env*` files are gitignored.
+Create `.env.local` (or `.env` for local development) with:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=<long-random-secret>
+MONGODB_URI=mongodb+srv://...
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+
+All `.env*` files are gitignored. `NEXT_PUBLIC_API_URL` is baked into the
+browser bundle at build time, so set it **before** the production build.
+
+## Deployment
+
+Deploy this app on Vercel and the Express API on Render:
+
+1. Vercel → Project Settings → Environment Variables: set `NEXT_PUBLIC_API_URL`
+   to the Render service URL, `BETTER_AUTH_URL` to the deployed Vercel origin,
+   plus `BETTER_AUTH_SECRET`, `MONGODB_URI`, `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET`. Add the Vercel origin to the Google OAuth redirect
+   URLs.
+2. Render → Environment: set `MONGODB_URI`, `BETTER_AUTH_URL` to the **same**
+   Vercel origin (it is the JWT issuer/audience), and `CORS_ORIGINS` to that
+   origin. Start command: `npm start`.
+3. Next.js handles route reloads, so no route returns 404. The live URL above
+   is updated once the production deploy is live.
+
+See the [server README](../sobarhat-server/README.md) for the full API list.
