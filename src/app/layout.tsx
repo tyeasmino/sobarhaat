@@ -24,6 +24,20 @@ export const metadata: Metadata = {
     "Create, join and track local social-service events: winter clothes, food support, flood relief, blood donation and more.",
 };
 
+// Applied before first paint so a saved dark theme never flashes white on
+// reload. ThemeToggle keeps the class in sync afterwards.
+const themeScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem("sobar-haat-theme");
+    var dark = stored
+      ? stored === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (dark) document.documentElement.classList.add("dark");
+  } catch (error) {}
+})();
+`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -31,6 +45,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <AuthProvider>
           <ToastProvider>
