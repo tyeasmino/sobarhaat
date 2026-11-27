@@ -133,9 +133,39 @@ https://sobarhaat-server.vercel.app for event data to load.
 | `BETTER_AUTH_URL` | Application origin; JWT issuer, audience and `/api/auth/jwks` base URL |
 | `BETTER_AUTH_SECRET` | BetterAuth signing secret |
 | `MONGODB_URI` | MongoDB Atlas connection string shared with the API |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth credentials |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth credentials for "Continue with Google" |
 
 Environment files are gitignored. See `.env.example` for a template.
+
+### Google sign-in setup
+
+Follow the [Better Auth Google guide](https://www.better-auth.com/docs/authentication/google):
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/dashboard),
+   select or create a project, then open **APIs & Services → OAuth consent
+   screen**. Choose **External**, fill in the app name and support email, and
+   add your own Google account as a **Test user** while the app is in testing.
+2. Open **APIs & Services → Credentials → Create Credentials → OAuth client
+   ID**, choose **Web application**, and add both authorized redirect URIs:
+
+   ```text
+   http://localhost:3000/api/auth/callback/google
+   https://sobarhaat-client.vercel.app/api/auth/callback/google
+   ```
+
+3. Copy the **Client ID** and **Client Secret** into `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` in `.env.local` (or `.env`) for local use, and into
+   the Vercel project's **Settings → Environment Variables** for production.
+4. Make sure `BETTER_AUTH_URL` is `http://localhost:3000` for a fully local
+   setup, or `https://sobarhaat-client.vercel.app` on Vercel. This value builds
+   the callback URL; a mismatch causes `redirect_uri_mismatch`.
+5. Redeploy after adding the Vercel variables, then open `/login` and click
+   **Continue with Google**.
+
+`src/lib/auth.ts` registers the Google provider only when both credentials are
+present, so builds without OAuth secrets still succeed. Existing users with the
+same verified Google email are linked automatically by Better Auth's default
+account linking.
 
 ### Scripts
 

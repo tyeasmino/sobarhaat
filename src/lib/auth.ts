@@ -15,6 +15,10 @@ const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 export const auth = betterAuth({
+  // Google uses this to build the redirect URI. It must match the app origin:
+  // https://sobarhaat-client.vercel.app in production, localhost:3000 locally.
+  baseURL: process.env.BETTER_AUTH_URL,
+
   database: mongodbAdapter(db, {
     client,
   }),
@@ -34,6 +38,8 @@ export const auth = betterAuth({
     },
   },
 
+  // Only register Google when both credentials are present, so a build without
+  // OAuth secrets still succeeds. Add the two env vars to enable the button.
   ...(googleClientId && googleClientSecret
     ? {
         socialProviders: {
