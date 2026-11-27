@@ -2,7 +2,7 @@
 
 **Community service, closer to home.**
 
-**Live site:** https://sobar-haat.vercel.app _(replace with the final Vercel URL after deployment)_
+**Live site:** https://sobarhaat-client.vercel.app
 
 ## Overview
 
